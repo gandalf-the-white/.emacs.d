@@ -11,13 +11,14 @@
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file)
 
-;;(load-theme 'tango-dark)
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-;; Comment/uncomment this line to enable MELPA Stable if desired.  See `package-archive-priorities`
-;; and `package-pinned-packages`. Most users will not need or want to do this.
-;;(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+			 ("org" . "https://orgmode.org/elpa/")
+			 ("elpa" . "https://elpa.gnu.org/packages/")))
+
 (package-initialize)
 
 (unless package-archive-contents
