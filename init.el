@@ -50,8 +50,18 @@
 ;;##################################
 
 (use-package doom-themes
-  :ensure t
-  :config (load-theme 'doom-one t))
+  :config
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold nil    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 
 (use-package doom-modeline
   :ensure t
@@ -101,6 +111,21 @@
   :config
   (setq ivy-initial-inputs-alist nil))  ;; Don't start searches with ^
 
+;; Ctrl+h (f or v)
+(use-package helpful
+  :custom
+  (counsel-describe-variable-function #'helpful-variable)
+  (counsel-describe-function-function #'helpful-callable)
+  :config
+  (defalias #'describe-command #'helpful-command)
+  (defalias #'describe-function #'counsel-describe-function)
+  (defalias #'describe-variable #'counsel-describe-variable)
+  (defalias #'describe-key #'helpful-key))
+
+(global-set-key (kbd "C-M-j") 'counsel-switch-buffer)
+
+
+
 ;;##################################
 ;; YASNIPPET
 ;;##################################
@@ -121,6 +146,31 @@
     (prettify-symbols-mode))
   (add-hook 'yas-after-exit-snippet-hook #'help/yas-after-exit-snippet-hook-fn)
   :diminish yas-minor-mode)
+
+;;##################################
+;; Projectile
+;;##################################
+
+(use-package projectile
+  :diminish pro
+  jectile-mode
+  :config (projectile-mode)
+  :custom((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  (when (file-directory-p "~/Projects/Code")
+    (setq projectile-project-search-path '("~/Projects/Code")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+;;##################################
+;; Magit
+;;##################################
+
+(use-package magit
+  :commands (magit-status magit-get-current-branch)
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 ;;##################################
 ;; Indent
