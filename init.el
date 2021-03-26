@@ -197,14 +197,38 @@
 ;; Lsp
 ;;##################################
 
+(defun efs/lsp-mode-setup ()
+    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+
 (use-package lsp-mode
   :init
   (setq lsp-keymap-prefix "C-c l") ;; or 'C-l', 's-l'
   :config
   (lsp-enable-which-key-integration t)
-  :hook ((c++-mode . lsp) 
+  :hook ((c++-mode .lsp)
          (lsp-mode . lsp-enable-which-key-integration))
+  ;; :hook ((lsp-mode . efs/lsp-mode-setup)
+  ;;        ((c++-mode cc-mode)  . lsp) 
+  ;;        (lsp-mode . lsp-enable-which-key-integration))
   :commands (lsp lsp-deferred))
+
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode))
+
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind (:map company-active-map
+              ("<tab>" . company-complete-selection))
+  (:map lsp-mode-map
+        ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
 
 ;;##################################
 ;; Indent
