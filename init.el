@@ -172,6 +172,40 @@
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
+(use-package forge)
+
+;;##################################
+;; Org
+;;##################################
+
+(defun efs/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (auto-fill-mode 0)
+  (visual-line-mode 1))
+
+
+(use-package org
+  :hook (org-mode . efs/org-mode-setup)
+  :config
+  (setq org-agenda-files
+        '("/Users/laurent/Documents/More/localsolver/Tasks.org"))
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)"))))
+
+;;##################################
+;; Lsp
+;;##################################
+
+(use-package lsp-mode
+  :init
+  (setq lsp-keymap-prefix "C-c l") ;; or 'C-l', 's-l'
+  :config
+  (lsp-enable-which-key-integration t)
+  :hook ((c++-mode . lsp) 
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands (lsp lsp-deferred))
+
 ;;##################################
 ;; Indent
 ;;##################################
