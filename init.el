@@ -204,6 +204,7 @@
 (use-package lsp-mode
   :init
   (setq lsp-keymap-prefix "C-c l") ;; or 'C-l', 's-l'
+  (setq lsp-headerline-breadcrumb-enable nil)
   :config
   (lsp-enable-which-key-integration t)
   :hook ((c++-mode .lsp)
