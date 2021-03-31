@@ -155,6 +155,8 @@ If you experience freezing, decrease this.  If you experience stuttering, increa
 
 (require 'init-terraform)
 
+(require 'init-yaml)
+
 (require 'init-cc)
 
 ;; (require 'init-python)
