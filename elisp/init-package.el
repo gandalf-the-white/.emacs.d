@@ -10,7 +10,7 @@
       package-archives
       '(("gnu"   . "https://elpa.gnu.org/packages/")
         ("melpa" . "https://melpa.org/packages/")
-	("elpa" . "https://elpa.gnu.org/packages/")
+	;; ("elpa" . "https://elpa.gnu.org/packages/")
         ;; ("cselpa" . "https://elpa.thecybershadow.net/packages/")
         ;; ("melpa-cn" . "http://mirrors.cloud.tencent.com/elpa/melpa/")
         ;; ("gnu-cn"   . "http://mirrors.cloud.tencent.com/elpa/gnu/")
