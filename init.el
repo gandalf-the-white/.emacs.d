@@ -1,255 +1,210 @@
-(setq inhibit-startup-message t)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+;;; Code:
 
-;; (setq url-proxy-services
-;;       '(("no_proxy" . "^\\(localhost\\|10\\..*\\|192\\.168\\..*\\)")
-;;         ("http" . "proxy.rd.francetelecom.fr:8080")
-;;         ("https" . "proxy.rd.francetelecom.fr:8080")))
+;; CheckVer
+(cond ((version< emacs-version "26.1")
+       (warn "M-EMACS requires Emacs 26.1 and above!"))
+      ((let* ((early-init-f (expand-file-name "early-init.el" user-emacs-directory))
+              (early-init-do-not-edit-d (expand-file-name "early-init-do-not-edit/" user-emacs-directory))
+              (early-init-do-not-edit-f (expand-file-name "early-init.el" early-init-do-not-edit-d)))
+         (and (version< emacs-version "27")
+              (or (not (file-exists-p early-init-do-not-edit-f))
+                  (file-newer-than-file-p early-init-f early-init-do-not-edit-f)))
+         (make-directory early-init-do-not-edit-d t)
+         (copy-file early-init-f early-init-do-not-edit-f t t t t)
+         (add-to-list 'load-path early-init-do-not-edit-d)
+         (require 'early-init))))
+;; -CheckVer
 
-(menu-bar-mode -1)
+;; BetterGC
+(defvar better-gc-cons-threshold 134217728 ; 128mb
+  "The default value to use for `gc-cons-threshold'.
+If you experience freezing, decrease this.  If you experience stuttering, increase this.")
 
-(setq visible-bell t)
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold better-gc-cons-threshold)
+            (setq file-name-handler-alist file-name-handler-alist-original)
+            (makunbound 'file-name-handler-alist-original)))
+;; -BetterGC
+
+;; AutoGC
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (if (boundp 'after-focus-change-function)
+                (add-function :after after-focus-change-function
+                              (lambda ()
+                                (unless (frame-focus-state)
+                                  (garbage-collect))))
+              (add-hook 'after-focus-change-function 'garbage-collect))
+            (defun gc-minibuffer-setup-hook ()
+              (setq gc-cons-threshold (* better-gc-cons-threshold 2)))
+
+            (defun gc-minibuffer-exit-hook ()
+              (garbage-collect)
+              (setq gc-cons-threshold better-gc-cons-threshold))
+
+            (add-hook 'minibuffer-setup-hook #'gc-minibuffer-setup-hook)
+            (add-hook 'minibuffer-exit-hook #'gc-minibuffer-exit-hook)))
+;; -AutoGC
+
 (setq custom-file "~/.emacs.d/custom.el")
-(load custom-file)
 
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+;; LoadPath
+(defun update-to-load-path (folder)
+  "Update FOLDER and its subdirectories to `load-path'."
+  (let ((base folder))
+    (unless (member base load-path)
+      (add-to-list 'load-path base))
+    (dolist (f (directory-files base))
+      (let ((name (concat base "/" f)))
+        (when (and (file-directory-p name)
+                   (not (equal f ".."))
+                   (not (equal f ".")))
+          (unless (member base load-path)
+            (add-to-list 'load-path name)))))))
 
-(require 'package)
+(update-to-load-path (expand-file-name "elisp" user-emacs-directory))
+;; -LoadPath
 
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-			             ("org" . "https://orgmode.org/elpa/")
-			             ("elpa" . "https://elpa.gnu.org/packages/")))
+;; Constants
 
-(package-initialize)
+(require 'init-const)
 
-(unless package-archive-contents
-  (package-refresh-contents))
+;; Packages
 
-;; initialize use-package on non-linux platforms
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
+;; Package Management
+(require 'init-package)
 
-(require 'use-package)
-(setq use-package-always-ensure t)
+;; Global Functionalities
+(require 'init-global-config)
 
-;;##################################
-;; LINE NUMBERS
-;;##################################
+(require 'init-func)
 
-(column-number-mode)
-(global-display-line-numbers-mode t)
+(require 'init-search)
 
-;; disable line numbers for some modes
-(dolist (mode '(org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                eshell-mode-hook))
-  (add-hook mode (lambda ()(display-line-numbers-mode 0))))
+;; (require 'init-crux)
 
-;;##################################
-;; GRAPHIC
-;;##################################
+;; (require 'init-avy)
 
-(use-package doom-themes
-  :config
-  ;; Global settings (defaults)
-  (setq doom-themes-enable-bold nil    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-one t)
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  (doom-themes-neotree-config)
-  ;; or for treemacs users
-  (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
-  (doom-themes-treemacs-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
+;; (require 'init-winner)
 
-(use-package doom-modeline
-  :ensure t
-  :init (doom-modeline-mode 1))
+(require 'init-which-key)
 
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+;; (require 'init-popup-kill-ring)
 
-;;##################################
-;; IVY
-;;##################################
+;; (require 'init-undo-tree)
 
-(use-package diminish)
+;; (require 'init-discover-my-major)
 
-(use-package counsel
-  :after ivy
-  :config (counsel-mode))
+;; (require 'init-ace-window)
 
-(use-package ivy
-  :diminish
-  :bind (("C-s" . swiper)
-	     :map ivy-minibuffer-map
-	     ("TAB" . ivy-alt-done)
-	     ("C-l" . ivy-alt-done)
-	     ("C-j" . ivy-next-line)
-	     ("C-k" . ivy-previous-line)
-	     :map ivy-switch-buffer-map
-	     ("C-k" . ivy-previous-line)
-	     ("C-l" . ivy-done)
-	     ("C-d" . ivy-switch-buffer-kill)
-	     :map ivy-reverse-i-search-map
-	     ("C-k" . ivy-previous-line)
-	     ("C-d" . ivy-reverse-i-search-kill))
-  :config
-  (ivy-mode 1))
+(require 'init-shell)
 
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
+;; (require 'init-dired)
 
-(use-package counsel
-  :bind (("M-x" . counsel-M-x)
-         ("C-x b" . counsel-ibuffer)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history))
-  :config
-  (setq ivy-initial-inputs-alist nil))  ;; Don't start searches with ^
+(require 'init-buffer)
 
-;; Ctrl+h (f or v)
-(use-package helpful
-  :custom
-  (counsel-describe-variable-function #'helpful-variable)
-  (counsel-describe-function-function #'helpful-callable)
-  :config
-  (defalias #'describe-command #'helpful-command)
-  (defalias #'describe-function #'counsel-describe-function)
-  (defalias #'describe-variable #'counsel-describe-variable)
-  (defalias #'describe-key #'helpful-key))
+;; UI Enhancements
+(require 'init-ui-config)
 
-(global-set-key (kbd "C-M-j") 'counsel-switch-buffer)
+(require 'init-theme)
 
+;; (require 'init-dashboard)
 
+;; (require 'init-fonts)
 
-;;##################################
-;; YASNIPPET
-;;##################################
+;; (require 'init-scroll)
 
-(use-package yasnippet
-  :ensure t
-  :config
-  (use-package yasnippet-snippets
-    :ensure t)
-  (yas-global-mode t)
-  (define-key yas-minor-mode-map (kbd "<tab>") nil)
-  (define-key yas-minor-mode-map (kbd "C-'") #'yas-expand)
-  (add-to-list #'yas-snippet-dirs "~/.emacs.d/snippets")
-  (yas-reload-all)
-  (setq yas-prompt-functions '(yas-ido-prompt))
-  (defun help/yas-after-exit-snippet-hook-fn ()
-    (prettify-symbols-mode)
-    (prettify-symbols-mode))
-  (add-hook 'yas-after-exit-snippet-hook #'help/yas-after-exit-snippet-hook-fn)
-  :diminish yas-minor-mode)
+;; General Programming
+(require 'init-magit)
 
-;;##################################
-;; Projectile
-;;##################################
+(require 'init-projectile)
 
-(use-package projectile
-  :diminish pro
-  jectile-mode
-  :config (projectile-mode)
-  :custom((projectile-completion-system 'ivy))
-  :bind-keymap
-  ("C-c p" . projectile-command-map)
-  :init
-  (when (file-directory-p "~/Projects/Code")
-    (setq projectile-project-search-path '("~/Projects/Code")))
-  (setq projectile-switch-project-action #'projectile-dired))
+;; (require 'init-treemacs)
 
-;;##################################
-;; Magit
-;;##################################
+(require 'init-yasnippet)
 
-(use-package magit
-  :commands (magit-status magit-get-current-branch)
-  :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+;; (require 'init-syntax)
 
-(use-package forge)
+;; (require 'init-dumb-jump)
 
-;;##################################
-;; Org
-;;##################################
+;; (require 'init-parens)
 
-(defun efs/org-mode-setup ()
-  (org-indent-mode)
-  (variable-pitch-mode 1)
-  (auto-fill-mode 0)
-  (visual-line-mode 1))
+(require 'init-indent)
 
+;; (require 'init-quickrun)
 
-(use-package org
-  :hook (org-mode . efs/org-mode-setup)
-  :config
-  (setq org-agenda-files
-        '("/Users/laurent/Documents/More/localsolver/Tasks.org"))
-  (setq org-todo-keywords
-        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)"))))
+(require 'init-format)
 
-;;##################################
-;; Lsp
-;;##################################
+;; (require 'init-comment)
 
-(defun efs/lsp-mode-setup ()
-    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-  (lsp-headerline-breadcrumb-mode))
+;; (require 'init-edit)
 
-(use-package lsp-mode
-  :init
-  (setq lsp-keymap-prefix "C-c l") ;; or 'C-l', 's-l'
-  (setq lsp-headerline-breadcrumb-enable nil)
-  :config
-  (lsp-enable-which-key-integration t)
-  :hook ((c++-mode .lsp)
-         (lsp-mode . lsp-enable-which-key-integration))
-  ;; :hook ((lsp-mode . efs/lsp-mode-setup)
-  ;;        ((c++-mode cc-mode)  . lsp) 
-  ;;        (lsp-mode . lsp-enable-which-key-integration))
-  :commands (lsp lsp-deferred))
+(require 'init-header)
 
-(use-package lsp-ui
-  :hook (lsp-mode . lsp-ui-mode))
+;; (require 'init-ein)
 
-(use-package lsp-treemacs
-  :after lsp)
+(require 'init-lsp)
 
-(use-package lsp-ivy)
+(require 'init-company)
 
-(use-package company
-  :after lsp-mode
-  :hook (lsp-mode . company-mode)
-  :bind (:map company-active-map
-              ("<tab>" . company-complete-selection))
-  (:map lsp-mode-map
-        ("<tab>" . company-indent-or-complete-common))
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0))
+;; Programming
+;; (require 'init-java)
 
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+(require 'init-cc)
 
-;;##################################
-;; Indent
-;;##################################
+;; (require 'init-python)
 
-(setq-default tab-width 4
-	          indent-tabs-mode nil
-	          c-basic-offset 4)
+;; (require 'init-haskell)
 
+;; (require 'init-ess)
 
-;;##################################
-;; Ctrl+h or Ctrl+x
-;;##################################
+;; (require 'init-latex)
 
-(use-package which-key
-  :init (which-key-mode)
-  :diminish which-key-mode
-  :config (setq which-key-idle-delay 0.3))
+;; (require 'init-buildsystem)
+
+;; Web Development
+;; (require 'init-webdev)
+
+;; Office
+(require 'init-org)
+
+(require 'init-pdf)
+
+;; Internet
+;; (require 'init-eaf)
+
+;; (require 'init-erc)
+
+;; (require 'init-mu4e)
+
+;; (require 'init-tramp)
+
+;; (require 'init-leetcode)
+
+;; (require 'init-debbugs)
+
+;; (require 'init-hackernews)
+
+;; (require 'init-eww)
+
+;; Miscellaneous
+;; (require 'init-chinese)
+
+;; (require 'init-games)
+
+;; (require 'init-epaint)
+
+;; (require 'init-zone)
+
+;; InitPrivate
+;; Load init-private.el if it exists
+(when (file-exists-p (expand-file-name "init-private.el" user-emacs-directory))
+  (load-file (expand-file-name "init-private.el" user-emacs-directory)))
+;; -InitPrivate
+
+(provide 'init)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; init.el ends here
