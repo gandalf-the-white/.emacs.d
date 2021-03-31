@@ -151,6 +151,10 @@ The original function deletes trailing whitespace of the current line."
 (add-to-list 'auto-mode-alist '("\\.Rmd\\'" . markdown-mode))
 ;; -SmallConfigs
 
+;; C and C++ mode
+(setq c-default-style "linux"
+      c-basic-offset 4)
+
 (provide 'init-global-config)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; init-global-config.el ends here
