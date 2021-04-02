@@ -22,6 +22,10 @@
     (setq explicit-shell-file-name "/bin/zsh")))
 ;; -ShellHerePac
 
+;; Vterm
+(use-package vterm
+  :ensure t)
+
 ;; MultiTermPac
 (use-package multi-term
   :load-path (lambda () (expand-file-name "site-elisp/multi-term" user-emacs-directory))
