@@ -1,4 +1,5 @@
-#+AUTHOR: Gandalf the white
+#+author: Gandalf the white
+<#+description: My personnal emacs config file 
 #+STARTUP: overview
 * interface tweaks
 #+BEGIN_SRC emacs-lisp
@@ -186,6 +187,35 @@
     :commands magit-status
     :bind ("C-x g" . magit-status))
 #+end_src
+* c++
+#+begin_src emacs-lisp 
+  (use-package ggtags
+    :ensure t
+    :config
+    (add-hook 'c-mode-common-hook
+              (lambda ()
+                (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+                  (ggtags-mode 1))))
+    )
+
+  (use-package projectile
+    :ensure t
+    :bind ("C-c p" . projectile-command-map)
+    :config
+    (projectile-global-mode)
+    (setq projectile-completion-system 'ivy))
+#+end_src
+* company
+#+begin_src emacs-lisp 
+  (use-package company
+    :ensure t
+    :config
+    (setq company-idle-delay 0)
+    (setq company-minimum-prefix-length 3)
+
+    (global-company-mode t))
+#+end_src
+
 * web mode
 #+begin_src emacs-lisp 
   (use-package web-mode
