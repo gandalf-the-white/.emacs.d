@@ -180,6 +180,12 @@
     :bind  ("C-=" . er/expand-region))
 #+end_src
 
+* magit
+#+begin_src emacs-lisp 
+  (use-package magit
+    :commands magit-status
+    :bind ("C-x g" . magit-status))
+#+end_src
 * web mode
 #+begin_src emacs-lisp 
   (use-package web-mode
@@ -205,4 +211,5 @@
 
   (load-if-exist "~/Documents/shared/mu4econfig.el")
 #+end_src
+
 
