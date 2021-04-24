@@ -1,5 +1,5 @@
 #+author: Gandalf the white
-<#+description: My personnal emacs config file 
+#+description: My personnal emacs config file 
 #+STARTUP: overview
 * interface tweaks
 #+BEGIN_SRC emacs-lisp
