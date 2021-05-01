@@ -18,14 +18,12 @@
   (use-package try
     :ensure t)
 #+END_SRC
-
 * which key
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
     :ensure t
     :config (which-key-mode))
 #+END_SRC
-  
 * org mode
 #+BEGIN_SRC emacs-lisp
   (use-package org-bullets
@@ -144,8 +142,10 @@
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
     :ensure t
+    :commands flycheck-mode
     :init
-    (global-flycheck-mode t))
+    (add-hook 'c++-mode-hook 'flycheck-mode)
+    (add-hook 'c-mode-hook 'flycheck-mode))
 #+END_SRC
 
 * yasnippet
@@ -193,26 +193,56 @@
 #+end_src
 * c++
 #+begin_src emacs-lisp 
-  (use-package ggtags
+  ;; (use-package ggtags
+  ;;   :ensure t
+  ;;   :config 
+  ;;   (add-hook 'c-mode-common-hook
+  ;;             (lambda ()
+  ;;               (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
+  ;;                 (ggtags-mode 1))))
+  ;;   )
+
+  (use-package cmake-mode
     :ensure t
-    :config 
-    (add-hook 'c-mode-common-hook
-              (lambda ()
-                (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-                  (ggtags-mode 1))))
-    )
+    :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
+
+  (use-package cmake-font-lock
+    :after (cmake-mode)
+    :hook (cmake-mode . cmake-font-lock-activate))
+
+  (use-package cmake-ide
+    :after projectile
+    :hook (c++-mode . my/cmake-ide-find-project)
+    :preface
+    (defun my/cmake-ide-find-project ()
+      "Finds the directory of the project for cmake-ide."
+      (with-eval-after-load 'projectile
+        (setq cmake-ide-project-dir (projectile-project-root))
+        (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
+      (setq cmake-ide-compile-command 
+            (concat "cd " cmake-ide-build-dir " && cmake .. && make"))
+      (cmake-ide-load-db))
+
+    (defun my/switch-to-compilation-window ()
+      "Switches to the *compilation* buffer after compilation."
+      (other-window 1))
+    :bind ([remap comment-region] . cmake-ide-compile)
+    :init (cmake-ide-setup)
+    :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
+
 #+end_src
 * company
 #+begin_src emacs-lisp 
-  (use-package company
-    :ensure t
-    :config
-    (setq company-idle-delay 0)
-    (setq company-minimum-prefix-length 3)
+  ;; (use-package company
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq company-idle-delay 0)
+  ;;   (setq company-minimum-prefix-length 3)
 
-    (global-company-mode t))
+  ;;   (global-company-mode t))
 #+end_src
 * projectile
+This will manage my workspaces
 #+begin_src emacs-lisp 
   (use-package projectile
     :ensure t
