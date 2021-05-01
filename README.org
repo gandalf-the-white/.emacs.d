@@ -1,6 +1,7 @@
 #+author: Gandalf the white
 #+description: My personnal emacs config file 
 #+STARTUP: overview
+#+PROPERTY: header-args :comments yes :results silent
 * interface tweaks
 #+BEGIN_SRC emacs-lisp
   (setq inhibit-startup-message t)
@@ -88,7 +89,11 @@
 * counsel
 #+BEGIN_SRC emacs-lisp
   (use-package counsel
-    :ensure t)
+    :ensure t
+    :bind
+    (("M-y" . counsel-yank-pop)
+     :map ivy-minibuffer-map
+     ("M-y" . ivy-next-line)))
 
   (use-package ivy
     :ensure t
@@ -194,15 +199,6 @@
 #+end_src
 * c++
 #+begin_src emacs-lisp 
-  ;; (use-package ggtags
-  ;;   :ensure t
-  ;;   :config 
-  ;;   (add-hook 'c-mode-common-hook
-  ;;             (lambda ()
-  ;;               (when (derived-mode-p 'c-mode 'c++-mode 'java-mode)
-  ;;                 (ggtags-mode 1))))
-  ;;   )
-
   (use-package cmake-mode
     :ensure t
     :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
@@ -232,15 +228,52 @@
     :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
 
 #+end_src
+* lsp
+#+begin_src emacs-lisp 
+  ;; set prefix for lsp-command-keymap (few alternatives - "s-l", "C-l")
+  (setq lsp-keymap-prefix "C-c l")
+  (setq company-clang-executable "/usr/bin/clangd-10")
+  (setq lsp-clients-clangd-executable "/usr/bin/clangd-10")
+
+
+
+  (use-package lsp-mode
+    :ensure t
+    :commands lsp
+    :hook ((c-mode c++-mode  python-mode) . lsp)
+    )
+
+  (use-package lsp-treemacs :ensure t)
+  (add-hook 'c-mode-hook 'lsp)
+  (add-hook 'c++-mode-hook 'lsp)
+  (add-hook 'cpp-mode-hook 'lsp)
+  (setq lsp-enabled-clients '(jedi clangd))
+  (use-package lsp-ui
+    :ensure t
+    :hook (lsp-mode . lsp-ui-mode)
+    :config
+    (setq lsp-ui-sideline-enable t)
+    (setq lsp-ui-sideline-show-hover nil)
+    (setq lsp-ui-doc-position 'bottom)
+    ;; lsp config stuff
+    (setq lsp-enable-links nil)
+    (setq lsp-signature-render-documentation nil)
+    (setq lsp-headerline-breadcrumb-enable nil)
+    (setq lsp-ui-doc-enable nil)
+    (setq lsp-completion-enable-additional-text-edit nil)
+    (setq web-mode-enable-current-element-highlight t)
+    (lsp-ui-doc-show))
+#+end_src
+
 * company
 #+begin_src emacs-lisp 
-  ;; (use-package company
-  ;;   :ensure t
-  ;;   :config
-  ;;   (setq company-idle-delay 0)
-  ;;   (setq company-minimum-prefix-length 3)
+  (use-package company
+    :ensure t
+    :config
+    (setq company-idle-delay 0)
+    (setq company-minimum-prefix-length 3)
 
-  ;;   (global-company-mode t))
+    (global-company-mode t))
 #+end_src
 * projectile
 This will manage my workspaces
