@@ -128,12 +128,12 @@
 
 * auto complete
 #+BEGIN_SRC emacs-lisp
-  (use-package auto-complete
-    :ensure t
-    :init
-    (progn
-      (ac-config-default)
-      (global-auto-complete-mode t)))
+  ;; (use-package auto-complete
+  ;;   :ensure t
+  ;;   :init
+  ;;   (progn
+  ;;     (ac-config-default)
+  ;;     (global-auto-complete-mode t)))
 #+END_SRC
 
 * theme
@@ -232,37 +232,52 @@
 #+begin_src emacs-lisp 
   ;; set prefix for lsp-command-keymap (few alternatives - "s-l", "C-l")
   (setq lsp-keymap-prefix "C-c l")
-  (setq company-clang-executable "/usr/bin/clangd-10")
-  (setq lsp-clients-clangd-executable "/usr/bin/clangd-10")
-
-
+  (setq company-clang-executable "/usr/local/Cellar/llvm/12.0.0/bin/clang-12")
+  (setq lsp-clients-clangd-executable "/usr/local/Cellar/llvm/12.0.0/bin/clangd")
 
   (use-package lsp-mode
     :ensure t
     :commands lsp
-    :hook ((c-mode c++-mode  python-mode) . lsp)
+    :hook ((c-mode c++-mode) . lsp)
     )
 
-  (use-package lsp-treemacs :ensure t)
-  (add-hook 'c-mode-hook 'lsp)
-  (add-hook 'c++-mode-hook 'lsp)
-  (add-hook 'cpp-mode-hook 'lsp)
-  (setq lsp-enabled-clients '(jedi clangd))
   (use-package lsp-ui
-    :ensure t
-    :hook (lsp-mode . lsp-ui-mode)
-    :config
-    (setq lsp-ui-sideline-enable t)
-    (setq lsp-ui-sideline-show-hover nil)
-    (setq lsp-ui-doc-position 'bottom)
-    ;; lsp config stuff
-    (setq lsp-enable-links nil)
-    (setq lsp-signature-render-documentation nil)
-    (setq lsp-headerline-breadcrumb-enable nil)
-    (setq lsp-ui-doc-enable nil)
-    (setq lsp-completion-enable-additional-text-edit nil)
-    (setq web-mode-enable-current-element-highlight t)
-    (lsp-ui-doc-show))
+    ;; flycheck integration & higher level UI modules
+    :commands lsp-ui-mode)
+
+  (use-package company-lsp
+    ;; company-mode completion
+    :commands company-lsp
+    :config (push 'company-lsp company-backends))
+
+  (use-package lsp-treemacs
+    ;; project wide overview
+    :commands lsp-treemacs-errors-list)
+
+  (use-package dap-mode
+    :commands (dap-debug dap-debug-edit-template))
+
+
+  ;; (use-package lsp-treemacs :ensure t)
+  ;; (add-hook 'c-mode-hook 'lsp)
+  ;; (add-hook 'c++-mode-hook 'lsp)
+  ;; (add-hook 'cpp-mode-hook 'lsp)
+  ;; (setq lsp-enabled-clients '(jedi clangd))
+  ;; (use-package lsp-ui
+  ;;   :ensure t
+  ;;   :hook (lsp-mode . lsp-ui-mode)
+  ;;   :config
+  ;;   (setq lsp-ui-sideline-enable t)
+  ;;   (setq lsp-ui-sideline-show-hover nil)
+  ;;   (setq lsp-ui-doc-position 'bottom)
+  ;;   ;; lsp config stuff
+  ;;   (setq lsp-enable-links nil)
+  ;;   (setq lsp-signature-render-documentation nil)
+  ;;   (setq lsp-headerline-breadcrumb-enable nil)
+  ;;   (setq lsp-ui-doc-enable nil)
+  ;;   (setq lsp-completion-enable-additional-text-edit nil)
+  ;;   (setq web-mode-enable-current-element-highlight t)
+  ;;   (lsp-ui-doc-show))
 #+end_src
 
 * company
@@ -274,6 +289,24 @@
     (setq company-minimum-prefix-length 3)
 
     (global-company-mode t))
+
+  (use-package company-irony
+    :ensure t
+    :config
+    (add-to-list 'company-backend 'company-irony))
+
+  (use-package irony
+    :ensure t
+    :config
+    (add-hook 'c++-mode-hook 'irony-mode)
+    (add-hook 'c-mode-hook 'irony-mode)
+    (add-hook 'objc-mode-hook 'irony-mode)
+    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+  (use-package irony-eldoc
+    :ensure t
+    :config
+    (add-hook 'irony-mode-hook #'irony-eldoc))
 #+end_src
 * projectile
 This will manage my workspaces
