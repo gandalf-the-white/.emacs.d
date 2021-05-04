@@ -25,6 +25,14 @@
     :ensure t
     :config (which-key-mode))
 #+END_SRC
+* treemacs
+#+begin_src emacs-lisp 
+  (use-package treemacs
+    :bind
+    (("C-c t" . treemacs)
+     ("s-a" . treemacs)))
+#+end_src
+
 * org mode
 #+BEGIN_SRC emacs-lisp
   (use-package org-bullets
@@ -205,7 +213,7 @@
 
   (use-package cmake-font-lock
     :ensure t
-;;    :after (cmake-mode)
+    ;;    :after (cmake-mode)
     :hook (cmake-mode . cmake-font-lock-activate))
 
   (use-package cmake-ide
@@ -228,6 +236,8 @@
     :init (cmake-ide-setup)
     :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
 
+  (global-set-key "\C-ck" #'compile)
+
 #+end_src
 * lsp
 #+begin_src emacs-lisp 
@@ -239,12 +249,29 @@
   (use-package lsp-mode
     :ensure t
     :commands lsp
-    :hook ((c-mode c++-mode) . lsp)
+    :hook ((c-mode c++-mode cpp-mode-hook) . lsp)
     )
 
+  ;;(use-package lsp-ui
+  ;; flycheck integration & higher level UI modules
+  ;;:commands lsp-ui-mode)
+
   (use-package lsp-ui
-    ;; flycheck integration & higher level UI modules
-    :commands lsp-ui-mode)
+    :ensure t
+    :hook (lsp-mode . lsp-ui-mode)
+    ;; :config
+    ;; (setq lsp-ui-sideline-enable t)
+    ;; (setq lsp-ui-sideline-show-hover nil)
+    ;; (setq lsp-ui-doc-position 'bottom)
+    ;; ;; lsp config stuff
+    ;; (setq lsp-enable-links nil)
+    ;; (setq lsp-signature-render-documentation nil)
+    ;; (setq lsp-headerline-breadcrumb-enable nil)
+    ;; (setq lsp-ui-doc-enable nil)
+    ;; (setq lsp-completion-enable-additional-text-edit nil)
+    ;; (setq web-mode-enable-current-element-highlight t)
+    ;; (lsp-ui-doc-show)
+    )
 
   (use-package company-lsp
     ;; company-mode completion
@@ -252,6 +279,8 @@
     :config (push 'company-lsp company-backends))
 
   (use-package lsp-treemacs
+    ;;:ensure t
+    :after treemacs
     ;; project wide overview
     :commands lsp-treemacs-errors-list)
 
