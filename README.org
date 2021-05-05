@@ -159,6 +159,7 @@
     :init
     (add-hook 'c++-mode-hook 'flycheck-mode)
     (add-hook 'c-mode-hook 'flycheck-mode))
+
 #+END_SRC
 
 * yasnippet
@@ -252,31 +253,16 @@
     :hook ((c-mode c++-mode cpp-mode-hook) . lsp)
     )
 
-  ;;(use-package lsp-ui
-  ;; flycheck integration & higher level UI modules
-  ;;:commands lsp-ui-mode)
-
-  (use-package lsp-ui
-    :ensure t
-    :hook (lsp-mode . lsp-ui-mode)
-    ;; :config
-    ;; (setq lsp-ui-sideline-enable t)
-    ;; (setq lsp-ui-sideline-show-hover nil)
-    ;; (setq lsp-ui-doc-position 'bottom)
-    ;; ;; lsp config stuff
-    ;; (setq lsp-enable-links nil)
-    ;; (setq lsp-signature-render-documentation nil)
-    ;; (setq lsp-headerline-breadcrumb-enable nil)
-    ;; (setq lsp-ui-doc-enable nil)
-    ;; (setq lsp-completion-enable-additional-text-edit nil)
-    ;; (setq web-mode-enable-current-element-highlight t)
-    ;; (lsp-ui-doc-show)
-    )
+  ;; (use-package lsp-ui
+  ;;   :ensure t
+  ;;   :hook (lsp-mode . lsp-ui-mode))
 
   (use-package company-lsp
     ;; company-mode completion
     :commands company-lsp
     :config (push 'company-lsp company-backends))
+
+  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
 
   (use-package lsp-treemacs
     ;;:ensure t
@@ -287,27 +273,6 @@
   (use-package dap-mode
     :commands (dap-debug dap-debug-edit-template))
 
-
-  ;; (use-package lsp-treemacs :ensure t)
-  ;; (add-hook 'c-mode-hook 'lsp)
-  ;; (add-hook 'c++-mode-hook 'lsp)
-  ;; (add-hook 'cpp-mode-hook 'lsp)
-  ;; (setq lsp-enabled-clients '(jedi clangd))
-  ;; (use-package lsp-ui
-  ;;   :ensure t
-  ;;   :hook (lsp-mode . lsp-ui-mode)
-  ;;   :config
-  ;;   (setq lsp-ui-sideline-enable t)
-  ;;   (setq lsp-ui-sideline-show-hover nil)
-  ;;   (setq lsp-ui-doc-position 'bottom)
-  ;;   ;; lsp config stuff
-  ;;   (setq lsp-enable-links nil)
-  ;;   (setq lsp-signature-render-documentation nil)
-  ;;   (setq lsp-headerline-breadcrumb-enable nil)
-  ;;   (setq lsp-ui-doc-enable nil)
-  ;;   (setq lsp-completion-enable-additional-text-edit nil)
-  ;;   (setq web-mode-enable-current-element-highlight t)
-  ;;   (lsp-ui-doc-show))
 #+end_src
 
 * company
@@ -320,23 +285,32 @@
 
     (global-company-mode t))
 
-  (use-package company-irony
-    :ensure t
-    :config
-    (add-to-list 'company-backend 'company-irony))
 
   (use-package irony
     :ensure t
     :config
     (add-hook 'c++-mode-hook 'irony-mode)
     (add-hook 'c-mode-hook 'irony-mode)
-    (add-hook 'objc-mode-hook 'irony-mode)
+    ;;    (add-hook 'objc-mode-hook 'irony-mode)
     (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
 
   (use-package irony-eldoc
     :ensure t
     :config
     (add-hook 'irony-mode-hook #'irony-eldoc))
+
+  (use-package company-irony
+    :ensure t
+    :config
+    (add-to-list 'company-backend 'company-irony))
+
+  (use-package flycheck-irony
+    :ensure t
+    :config
+    (eval-after-load 'flycheck
+      '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+    )
+
 #+end_src
 * projectile
 This will manage my workspaces
