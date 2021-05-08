@@ -1,4 +1,4 @@
-#+author: Gandalf the white
+#+author: Spike Spiegel
 #+description: My personnal emacs config file 
 #+STARTUP: overview
 #+PROPERTY: header-args :comments yes :results silent
