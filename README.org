@@ -44,11 +44,15 @@
 #+end_src
 
 * number and hight line
-#+begin_src emacs-lisp 
+#+begin_src emacs-lisp
   (use-package nlinum
     :ensure t
     :config
     (global-nlinum-mode))
+
+  (use-package nlinum-hl
+    :ensure t)
+
 
   (dolist (mode '(org-mode-hook
                   term-mode-hook
@@ -57,12 +61,32 @@
                   eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-  (use-package hl-line
-    :config
-    (global-hl-line-mode +1))
+  ;; (use-package hl-line
+  ;;   :config
+  ;;   (global-hl-line-mode +1))
 
-  (setq nlinum-highlight-current-line t)
-  (setq nlinum-format "%4d \u2502 ")
+  ;; (setq nlinum-highlight-current-line t)
+  ;; (setq nlinum-format "%4d \u2502 ")
+
+  ;; A shotgun approach that refreshes line numbers on a regular basis:
+  ;; Runs occasionally, though unpredictably
+  (add-hook 'post-gc-hook #'nlinum-hl-flush-all-windows)
+
+  ;; whenever Emacs loses/gains focus
+  (add-hook 'focus-in-hook  #'nlinum-hl-flush-all-windows)
+  (add-hook 'focus-out-hook #'nlinum-hl-flush-all-windows)
+  ;; ...or switches windows
+  (advice-add #'select-window :before #'nlinum-hl-do-select-window-flush)
+  (advice-add #'select-window :after  #'nlinum-hl-do-select-window-flush)
+
+  ;; after X amount of idle time
+  (run-with-idle-timer 5 t #'nlinum-hl-flush-window)
+  (run-with-idle-timer 30 t #'nlinum-hl-flush-all-windows)
+
+  ;; Bind it for flush-on-demand (this might be excessive)
+  (global-set-key (kbd "<f9>") #'nlinum-hl-flush-all-windows)
+  (global-set-key (kbd "<f8>") #'nlinum-hl-flush-window)
+  (global-set-key (kbd "<f7>") #'nlinum-hl-flush-region) ; on selections
 #+end_src
 
 * multi cursor
@@ -100,6 +124,8 @@
     :ensure t
     :config
     (add-hook 'org-mode-hook (lambda ()(org-bullets-mode 1))))
+
+  (setq inhibit-compacting-font-caches t)
 
   (custom-set-variables
    '(org-directory "~/Documents/orgfiles")
@@ -209,7 +235,7 @@
 #+BEGIN_SRC emacs-lisp
   (use-package zenburn-theme
     :ensure t
-    ;;    :config (load-theme 'zenburn t)
+    :config (load-theme 'zenburn t)
     )
 
   (use-package doom-themes
@@ -218,7 +244,7 @@
     ;; Global settings (defaults)
     (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
           doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-one t)
+    ;; (load-theme 'doom-one t)
 
     ;; Enable flashing mode-line on errors
     (doom-themes-visual-bell-config)
