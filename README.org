@@ -2,29 +2,77 @@
 #+description: My personnal emacs config file 
 #+STARTUP: overview
 #+PROPERTY: header-args :comments yes :results silent
+
+* personnal
+#+begin_src emacs-lisp 
+  (setq user-full-name "Spike Spiegel"
+        user-mail-address "spikeandfaye@gmail.com")
+#+end_src
+
 * interface tweaks
 #+BEGIN_SRC emacs-lisp
   (setq inhibit-startup-message t)
   (tool-bar-mode -1)
   (menu-bar-mode -1)
+
+  (line-number-mode t)
+  (column-number-mode t)
+  (size-indication-mode t)
+
   (fset 'yes-or-no-p 'y-or-n-p)
-  (global-set-key (kbd "<F5>") 'revert-buffer)
 #+END_SRC
+
 * alias
 #+BEGIN_SRC emacs-lisp
   (defalias 'list-buffers 'ibuffer)
+  (defalias 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
+
+* paren
+#+begin_src emacs-lisp 
+  (use-package paren
+    :config
+    (show-paren-mode +1))
+
+  (use-package elec-pair
+    :config
+    (electric-pair-mode +1))
+#+end_src
+
+* number and hight line
+#+begin_src emacs-lisp 
+  (use-package nlinum
+    :config
+    (global-nlinum-mode))
+
+  (dolist (mode '(org-mode-hook
+                  term-mode-hook
+                  shell-mode-hook
+                  treemacs-mode-hook
+                  eshell-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+  (use-package hl-line
+    :config
+    (global-hl-line-mode +1))
+
+  (setq nlinum-highlight-current-line t)
+  (setq nlinum-format "%4d \u2502 ")
+#+end_src
+
 * try
 #+BEGIN_SRC emacs-lisp
   (use-package try
     :ensure t)
 #+END_SRC
+
 * which key
 #+BEGIN_SRC emacs-lisp
   (use-package which-key
     :ensure t
     :config (which-key-mode))
 #+END_SRC
+
 * treemacs
 #+begin_src emacs-lisp 
   (use-package treemacs
@@ -148,7 +196,28 @@
 #+BEGIN_SRC emacs-lisp
   (use-package zenburn-theme
     :ensure t
-    :config (load-theme 'zenburn t))
+    ;;    :config (load-theme 'zenburn t)
+    )
+
+  (use-package doom-themes
+    :ensure t
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-one t)
+
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+
+    ;; Enable custom neotree theme (all-the-icons must be installed!)
+    (doom-themes-neotree-config)
+    ;; or for treemacs users
+    (setq doom-themes-treemacs-theme "doom-colors") ; use the colorful treemacs theme
+    (doom-themes-treemacs-config)
+
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
 #+END_SRC
 
 * flycheck
@@ -172,7 +241,7 @@
   (use-package yasnippet-snippets
     :ensure t)
 #+END_SRC
-  
+
 * undo tree
 #+begin_src emacs-lisp  
   (use-package undo-tree
@@ -190,9 +259,9 @@
     :config
     (beacon-mode t))
 
-  (use-package expand-region
-    :ensure t
-    :bind  ("C-=" . er/expand-region))
+  ;; (use-package expand-region
+  ;;   :ensure t
+  ;;   :bind  ("C-=" . er/expand-region))
 #+end_src
 
 * magit
@@ -206,6 +275,7 @@
     :bind (("C-x g" . magit-status)
            ("C-x C-g" . magit-status)))
 #+end_src
+
 * c++
 #+begin_src emacs-lisp 
   (use-package cmake-mode
@@ -217,35 +287,36 @@
     ;;    :after (cmake-mode)
     :hook (cmake-mode . cmake-font-lock-activate))
 
-  (use-package cmake-ide
-    :after projectile
-    :hook (c++-mode . my/cmake-ide-find-project)
-    :preface
-    (defun my/cmake-ide-find-project ()
-      "Finds the directory of the project for cmake-ide."
-      (with-eval-after-load 'projectile
-        (setq cmake-ide-project-dir (projectile-project-root))
-        (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
-      (setq cmake-ide-compile-command 
-            (concat "cd " cmake-ide-build-dir " && cmake .. && make"))
-      (cmake-ide-load-db))
+  ;; (use-package cmake-ide
+  ;;   :after projectile
+  ;;   :hook (c++-mode . my/cmake-ide-find-project)
+  ;;   :preface
+  ;;   (defun my/cmake-ide-find-project ()
+  ;;     "Finds the directory of the project for cmake-ide."
+  ;;     (with-eval-after-load 'projectile
+  ;;       (setq cmake-ide-project-dir (projectile-project-root))
+  ;;       (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
+  ;;     (setq cmake-ide-compile-command 
+  ;;           (concat "cd " cmake-ide-build-dir " && cmake .. && make"))
+  ;;     (cmake-ide-load-db))
 
-    (defun my/switch-to-compilation-window ()
-      "Switches to the *compilation* buffer after compilation."
-      (other-window 1))
-    :bind ([remap comment-region] . cmake-ide-compile)
-    :init (cmake-ide-setup)
-    :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
+  ;;   (defun my/switch-to-compilation-window ()
+  ;;     "Switches to the *compilation* buffer after compilation."
+  ;;     (other-window 1))
+  ;;   :bind ([remap comment-region] . cmake-ide-compile)
+  ;;   :init (cmake-ide-setup)
+  ;;   :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
 
   (global-set-key "\C-ck" #'compile)
 
 #+end_src
+
 * lsp
 #+begin_src emacs-lisp 
-  ;; set prefix for lsp-command-keymap (few alternatives - "s-l", "C-l")
+  ;; ;; set prefix for lsp-command-keymap (few alternatives - "s-l", "C-l")
   (setq lsp-keymap-prefix "C-c l")
-  (setq company-clang-executable "/usr/local/Cellar/llvm/12.0.0/bin/clang-12")
-  (setq lsp-clients-clangd-executable "/usr/local/Cellar/llvm/12.0.0/bin/clangd")
+  ;; (setq company-clang-executable "/usr/local/Cellar/llvm/12.0.0/bin/clang-12")
+  ;; (setq lsp-clients-clangd-executable "/usr/local/Cellar/llvm/12.0.0/bin/clangd")
 
   (use-package lsp-mode
     :ensure t
@@ -253,9 +324,9 @@
     :hook ((c-mode c++-mode cpp-mode-hook) . lsp)
     )
 
-  ;; (use-package lsp-ui
-  ;;   :ensure t
-  ;;   :hook (lsp-mode . lsp-ui-mode))
+  (use-package lsp-ui
+    :ensure t
+    :hook (lsp-mode . lsp-ui-mode))
 
   (use-package company-lsp
     ;; company-mode completion
@@ -270,8 +341,8 @@
     ;; project wide overview
     :commands lsp-treemacs-errors-list)
 
-  (use-package dap-mode
-    :commands (dap-debug dap-debug-edit-template))
+  ;; (use-package dap-mode
+  ;;   :commands (dap-debug dap-debug-edit-template))
 
 #+end_src
 
@@ -286,32 +357,33 @@
     (global-company-mode t))
 
 
-  (use-package irony
-    :ensure t
-    :config
-    (add-hook 'c++-mode-hook 'irony-mode)
-    (add-hook 'c-mode-hook 'irony-mode)
-    ;;    (add-hook 'objc-mode-hook 'irony-mode)
-    (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+  ;; (use-package irony
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'c++-mode-hook 'irony-mode)
+  ;;   (add-hook 'c-mode-hook 'irony-mode)
+  ;;   ;;    (add-hook 'objc-mode-hook 'irony-mode)
+  ;;   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
 
-  (use-package irony-eldoc
-    :ensure t
-    :config
-    (add-hook 'irony-mode-hook #'irony-eldoc))
+  ;; (use-package irony-eldoc
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'irony-mode-hook #'irony-eldoc))
 
-  (use-package company-irony
-    :ensure t
-    :config
-    (add-to-list 'company-backend 'company-irony))
+  ;; (use-package company-irony
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-to-list 'company-backend 'company-irony))
 
-  (use-package flycheck-irony
-    :ensure t
-    :config
-    (eval-after-load 'flycheck
-      '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
-    )
+  ;; (use-package flycheck-irony
+  ;;   :ensure t
+  ;;   :config
+  ;;   (eval-after-load 'flycheck
+  ;;     '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+  ;;   )
 
 #+end_src
+
 * projectile
 This will manage my workspaces
 #+begin_src emacs-lisp 
@@ -322,6 +394,23 @@ This will manage my workspaces
     (projectile-global-mode)
     (setq projectile-completion-system 'ivy))
 #+end_src
+
+* terraform
+#+begin_src emacs-lisp 
+  (use-package hcl-mode
+    :mode "\\.nomad\\'")
+
+  (use-package terraform-mode
+    :hook
+    (terraform-mode . company-mode)
+    (terraform-mode . (lambda ()
+                        (when (and (stringp buffer-file-name)
+                                   (string-match "\\.tf\\(vars\\)?\\'" buffer-file-name))
+                          (aggressive-indent-mode 0))))
+
+    (before-save . terraform-format-buffer))
+#+end_src
+>
 * dumb jump
 #+begin_src emacs-lisp 
   (use-package dumb-jump
