@@ -45,13 +45,15 @@
 
 * number and hight line
 #+begin_src emacs-lisp
-  (use-package nlinum
-    :ensure t
-    :config
-    (global-nlinum-mode))
+  (column-number-mode)
+  (global-display-line-numbers-mode t)
+  ;; (use-package nlinum
+  ;;   :ensure t
+  ;;   :config
+  ;;   (global-nlinum-mode))
 
-  (use-package nlinum-hl
-    :ensure t)
+  ;; (use-package nlinum-hl
+  ;;   :ensure t)
 
 
   (dolist (mode '(org-mode-hook
@@ -70,23 +72,23 @@
 
   ;; A shotgun approach that refreshes line numbers on a regular basis:
   ;; Runs occasionally, though unpredictably
-  (add-hook 'post-gc-hook #'nlinum-hl-flush-all-windows)
+  ;; (add-hook 'post-gc-hook #'nlinum-hl-flush-all-windows)
 
   ;; whenever Emacs loses/gains focus
-  (add-hook 'focus-in-hook  #'nlinum-hl-flush-all-windows)
-  (add-hook 'focus-out-hook #'nlinum-hl-flush-all-windows)
+  ;; (add-hook 'focus-in-hook  #'nlinum-hl-flush-all-windows)
+  ;; (add-hook 'focus-out-hook #'nlinum-hl-flush-all-windows)
   ;; ...or switches windows
-  (advice-add #'select-window :before #'nlinum-hl-do-select-window-flush)
-  (advice-add #'select-window :after  #'nlinum-hl-do-select-window-flush)
+  ;; (advice-add #'select-window :before #'nlinum-hl-do-select-window-flush)
+  ;; (advice-add #'select-window :after  #'nlinum-hl-do-select-window-flush)
 
   ;; after X amount of idle time
-  (run-with-idle-timer 5 t #'nlinum-hl-flush-window)
-  (run-with-idle-timer 30 t #'nlinum-hl-flush-all-windows)
+  ;; (run-with-idle-timer 5 t #'nlinum-hl-flush-window)
+  ;; (run-with-idle-timer 30 t #'nlinum-hl-flush-all-windows)
 
   ;; Bind it for flush-on-demand (this might be excessive)
-  (global-set-key (kbd "<f9>") #'nlinum-hl-flush-all-windows)
-  (global-set-key (kbd "<f8>") #'nlinum-hl-flush-window)
-  (global-set-key (kbd "<f7>") #'nlinum-hl-flush-region) ; on selections
+  ;; (global-set-key (kbd "<f9>") #'nlinum-hl-flush-all-windows)
+  ;; (global-set-key (kbd "<f8>") #'nlinum-hl-flush-window)
+  ;; (global-set-key (kbd "<f7>") #'nlinum-hl-flush-region) ; on selections
 #+end_src
 
 * multi cursor
