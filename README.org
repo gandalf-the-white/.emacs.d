@@ -470,7 +470,6 @@ That's right, I'm a crustacean :crab:
     :hook (cmake-mode . cmake-font-lock-activate))
 #+end_src
 
-
 * Appearance
 Configuration related to the appearance of Emacs
 
@@ -622,9 +621,24 @@ Activate ~hcl-mode~ for ~.nomad~ files.
 ** Slime
 Slime than sly failed on MacOS
 #+begin_src emacs-lisp 
-  ;; (use-package slime-company
-  ;;   :after (slime company)
-  ;;   :config (setq slime-company-completion 'fuzzy))
+  (use-package slime-company
+    :after (slime company)
+    :config (setq slime-company-completion 'fuzzy))
+
+  (use-package slime
+    :ensure t
+    :defer t
+    :init
+    (setq inferior-lisp-program "sbcl")
+    :config
+    (use-package slime-company
+      :ensure t)
+    (add-hook 'slime-mode-hook
+              (lambda ()
+                (load (expand-file-name "~/quicklisp/slime-helper.el"))
+                (add-to-list 'slime-contribs 'slime-fancy)
+                (add-to-list 'slime-contribs 'inferior-slime))))
+
 
   ;; (setq company-idle-delay 0)
   ;; (setq company-minimum-prefix-length 3)
