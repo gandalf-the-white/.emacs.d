@@ -93,6 +93,126 @@ Then, in cases where I don't want this to be true, I simply set ~:ensure nil~
 
    
    
+** Configure FlySpell to use aspell
+   I use ~aspell~, so this simply sets [[https://www.emacswiki.org/emacs/FlySpell][Flyspell]] to use it and passes a couple extra arguments
+   #+begin_src emacs-lisp
+   (setq ispell-program-name "aspell")
+   (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_GB"))
+   #+end_src
+
+** Calendar/Diary
+   Set the start of the week for the calendar to be Monday.
+   Sort entries when viewing diary items.
+   #+begin_src emacs-lisp
+   (setq calendar-week-start-day 1)
+   (setq diary-file "~/org/diary")
+   (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
+   #+end_src
+
+** IRC
+   Emacs comes with a great builtin IRC client: ERC.
+   These are some general settings that're all pretty self explanatory: hide particular activity, autojoin channels for particular servers.
+   For convenience, I've also defined a ~erc-conn~ function for my usual connection parameters.
+   #+begin_src emacs-lisp
+   (use-package erc
+     :ensure nil
+     :config
+     (setq erc-hide-list '("PART" "QUIT" "JOIN"))
+     (setq erc-autojoin-channels-alist '(("freenode.net"
+       "#lobsters"
+       "#nixos"
+       "#nix-darwin"))
+       erc-server "irc.freenode.net"
+       erc-nick "cmacrae"))
+   (defun cm/erc-conn ()
+     (interactive)
+     (erc-tls :server "irc.freenode.net" :port 6697 :nick "spikespiegel"))
+   #+end_src
+
+* Packages
+  This section covers external packages I use and their configuration, in no particular order
+
+** Ivy|Counsel|Swiper
+   Absolutely brilliant interactive interface and completion frameworks.
+   These packages improve the Emacs experience so much.
+   As you can see from the ~:bind~ sections, I use these to replace some of the most used actions.
+
+*** Ivy
+   - Suppress count visibility for ~ivy-read~
+   - Set initial input chars to ~nil~
+   - Provide ~insert~ and ~yank~ options for candidates
+   - Display the candidate menu at the current point position with ~ivy-posframe~
+   - Add some graphical niceties with ~ivy-rich~
+
+        #+begin_src emacs-lisp
+   (use-package ivy
+     :hook (after-init . ivy-mode)
+     :preface
+     (defun ivy-yank-action (x)
+       (kill-new x))
+
+     (defun ivy-copy-to-buffer-action (x)
+       (with-ivy-window
+         (insert x)))
+
+     :bind
+     ("C-s"     . swiper)
+     ("M-x"     . counsel-M-x)
+     ("C-x C-f" . counsel-find-file)
+
+     :config
+     (setq ivy-count-format          ""
+           ivy-initial-inputs-alist  nil)
+     (ivy-set-actions t
+      '(("i" ivy-copy-to-buffer-action "insert")
+        ("y" ivy-yank-action "yank"))))
+
+   (use-package ivy-posframe
+     :after ivy
+     :config
+     (set-face-background 'ivy-posframe-border   "#51afef")
+     (setq ivy-posframe-border-width             1
+           ivy-posframe-parameters               '((left-fringe . 8) (right-fringe . 8))
+           ivy-posframe-display-functions-alist  '((t      . ivy-posframe-display-at-point)
+                                                   (swiper . nil)))
+     (ivy-posframe-mode 1))
+
+   (use-package ivy-rich
+     :after counsel
+     :config (setq ivy-rich-path-style 'abbrev)
+     :init (ivy-rich-mode 1))
+   #+end_src
+
+   *** Counsel
+    - Set a prettier candidate delimiter for killring
+    - Bind common functions
+    - Bind common org functions
+    - Ensure `smex` is installed for better candidate matching
+   #+begin_src emacs-lisp
+   (use-package counsel
+     :init
+     (setq counsel-yank-pop-separator
+       (concat "\n\n"
+         (concat (apply 'concat (make-list 50 "---")) "\n")))
+     :bind (
+     ("M-y" . counsel-yank-pop)
+     ("C-h f" . counsel-describe-function)
+     ("C-h v" . counsel-describe-variable)
+
+     :map org-mode-map
+     ("C-c  C-j" . counsel-org-goto)
+     ("C-c  C-q" . counsel-org-tag))
+
+     :config
+     (use-package smex :ensure t))
+   #+end_src
+
+
+
+
+
+
+   
 * interface tweaks
 #+BEGIN_SRC emacs-lisp
   (setq inhibit-startup-message t)
@@ -202,41 +322,41 @@ I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
   
 * counsel
 #+BEGIN_SRC emacs-lisp
-  (use-package counsel
-    :ensure t
-    :bind
-    (("M-y" . counsel-yank-pop)
-     :map ivy-minibuffer-map
-     ("M-y" . ivy-next-line)))
+  ;; (use-package counsel
+  ;;   :ensure t
+  ;;   :bind
+  ;;   (("M-y" . counsel-yank-pop)
+  ;;    :map ivy-minibuffer-map
+  ;;    ("M-y" . ivy-next-line)))
 
-  (use-package ivy
-    :ensure t
-    :diminish (ivy-mode)
-    :bind (("C-x b" . ivy-switch-buffer))
-    :config
-    (ivy-mode 1)
-    (setq ivy-use-virtual-buffers t)
-    (setq ivy-display-style 'fancy))
+  ;; (use-package ivy
+  ;;   :ensure t
+  ;;   :diminish (ivy-mode)
+  ;;   :bind (("C-x b" . ivy-switch-buffer))
+  ;;   :config
+  ;;   (ivy-mode 1)
+  ;;   (setq ivy-use-virtual-buffers t)
+  ;;   (setq ivy-display-style 'fancy))
 
-  (use-package swiper
-    :ensure try
-    :bind (("C-s" . swiper)
-           ("C-r" . swiper)
-           ("C-c C-r" . ivy-resume)
-           ("M-x" . counsel-M-x)
-           ("C-x C-f" . counsel-find-file))
-    :config
-    (progn
-      (ivy-mode)
-      (setq ivy-use-virtual-buffers t)
-      (setq ivy-display-style 'fancy)
-      (setq enable-recursive-minibuffers t)
-      (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
-      ))
+  ;; (use-package swiper
+  ;;   :ensure try
+  ;;   :bind (("C-s" . swiper)
+  ;;          ("C-r" . swiper)
+  ;;          ("C-c C-r" . ivy-resume)
+  ;;          ("M-x" . counsel-M-x)
+  ;;          ("C-x C-f" . counsel-find-file))
+  ;;   :config
+  ;;   (progn
+  ;;     (ivy-mode)
+  ;;     (setq ivy-use-virtual-buffers t)
+  ;;     (setq ivy-display-style 'fancy)
+  ;;     (setq enable-recursive-minibuffers t)
+  ;;     (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
+  ;;     ))
 
-  (use-package avy
-    :ensure t
-    :bind ("M-s" . avy-goto-char))
+  ;; (use-package avy
+  ;;   :ensure t
+  ;;   :bind ("M-s" . avy-goto-char))
 
 #+END_SRC
 
@@ -356,10 +476,10 @@ I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
     :ensure t
     :hook (lsp-mode . lsp-ui-mode))
 
-  (use-package company-lsp
-    ;; company-mode completion
-    :commands company-lsp
-    :config (push 'company-lsp company-backends))
+  ;; (use-package company-lsp
+  ;;   ;; company-mode completion
+  ;;   :commands company-lsp
+  ;;   :config (push 'company-lsp company-backends))
 
   (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
 
