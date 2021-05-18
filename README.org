@@ -32,20 +32,27 @@
   (defalias 'yes-or-no-p 'y-or-n-p)
 #+END_SRC
 
-* paren
-#+begin_src emacs-lisp 
-  (use-package paren
+* brackets
+#+begin_src emacs-lisp
+  (use-package smartparens
+    :ensure t
     :config
-    (show-paren-mode +1))
+    (setq sp-show-pair-from-inside nil)
+    (require 'smartparens-config)
+    :diminish smartparens-mode)
 
-  (use-package elec-pair
-    :config
-    (electric-pair-mode +1))
+  ;; (use-package paren
+  ;;   :config
+  ;;   (show-paren-mode +1))
+
+  ;; (use-package elec-pair
+  ;;   :config
+  ;;   (electric-pair-mode +1))
 #+end_src
 
-* number and hight line
+* display number
 #+begin_src emacs-lisp
-  (column-number-mode)
+  ;; (column-number-mode)                    
   (global-display-line-numbers-mode t)
 
   (dolist (mode '(org-mode-hook
@@ -89,55 +96,8 @@
 * org mode
 #+BEGIN_SRC emacs-lisp
   (use-package org-bullets
-    :ensure t
-    :config
-    (add-hook 'org-mode-hook (lambda ()(org-bullets-mode 1))))
-
-  (setq inhibit-compacting-font-caches t)
-
-  (custom-set-variables
-   '(org-directory "~/Documents/orgfiles")
-   '(org-default-notes-file (concat org-directory "/notes.org"))
-   '(org-export-html-postamble nil)
-   '(org-startup-folded (quote overview))
-   '(org-hide-leading-stars t)
-   '(org-startup-indented t))
-
-  (setq org-file-apps
-        (append '(
-                  ("\\.pdf\\'" . "preview %s")
-                  ) org-file-apps))
-
-  (global-set-key "\C-ca" 'org-agenda)
-
-  (use-package org-ac
-    :ensure t
-    :init (progn
-            (require 'org-ac)
-            (org-ac/config-default)
-            ))
-
-  (global-set-key (kbd "C-c c") 'org-capture)
-
-  (setq org-agenda-files (list "~/Documents/orgfiles/gcal.org"
-                               "~/Documents/orgfiles/i.org"
-                               "~/Documents/orgfiles/schedule.org"))
-
-  (setq org-capture-templates
-        '(("a" "Appointment" entry (file  "~/Documents/orgfiles/gcal.org" "Appointments")
-           "* TODO %?\n:PROPERTIES:\n\n:END:\nDEADLINE: %^T \n %i\n")
-          ("n" "Note" entry (file+headline "~/Documents/orgfiles/notes.org" "Notes")
-           "* Note %?\n%T")
-          ("l" "Link" entry (file+headline "~/Documents/orgfiles/links.org" "Links")
-           "* %? %^L %^g \n%T" :prepend t)
-          ("b" "Blog idea" entry (file+headline "~/Documents/orgfiles/i.org" "Blog Topics:")
-           "* %?\n%T" :prepend t)
-          ("t" "To Do Item" entry (file+headline "~/Documents/orgfiles/i.org" "To Do Items")
-           "* %?\n%T" :prepend t)
-          ("j" "Journal" entry (file+datetree "~/Documents/journal.org")
-           "* %?\nEntered on %U\n  %i\n  %a")
-          ("s" "Screencast" entry (file "~/Documents/orgfiles/screencastnotes.org")
-           "* %?\n%i\n")))
+    :hook
+    (org-mode . (lambda () (org-bullets-mode 1))))
 #+END_SRC
 
 * ace window
@@ -406,13 +366,30 @@ This will manage my workspaces
 #+begin_src shell 
   (setq inferior-lisp-program "/usr/local/bin/sbcl")
 
-  (use-package sly
-      :ensure t
-      :ensure-system-package (clisp sbcl)
-      :config (setq sly-lisp-implementations
-            '((clisp ("clisp" "-ansi"))
-              (sbcl ("sbcl") :coding-system utf-8-unix)))
-      :pin melpa)
+  (use-package slime
+   :init
+   (load (expand-file-name "~/.quicklisp/slime-helper.el"))
+   :config
+   (setq slime-lisp-implementations
+    '((sbcl  ("/usr/local/bin/sbcl" "--dynamic-space-size" "2GB") :coding-system utf-8-unix))
+      slime-net-coding-system 'utf-8-unix
+    slime-export-save-file t
+    slime-contribs '(slime-fancy slime-repl slime-scratch slime-trace-dialog)
+      lisp-simple-loop-indentation  1
+      lisp-loop-keyword-indentation 6
+      lisp-loop-forms-indentation   6)
+    (global-set-key "\C-z" 'slime-selector)
+   (autoload 'paredit-mode "paredit" "Minor mode for structurally editing Lisp code." t)
+    (add-hook 'emacs-lisp-mode-hook       (lambda () (paredit-mode +1)))
+   (add-hook 'lisp-mode-hook             (lambda () (paredit-mode +1)))
+    (add-hook 'lisp-interaction-mode-hook (lambda () (paredit-mode +1)))
+   (add-hook 'scheme-mode-hook           (lambda () (paredit-mode +1)))
+    (add-hook 'slime-repl-mode-hook       (lambda () (paredit-mode +1)))
+   (add-hook 'slime-load-hook            (lambda () (require 'slime-fancy)))
+                                                                            (add-hook 'enable-paredit-mode        (lambda () (paredit-mode +1)))
+    (add-hook 'slime-repl-mode-hook       'override-slime-repl-bindings-with-paredit)
+    (show-paren-mode 1))
+
 #+end_src
 >
 * load files
