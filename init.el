@@ -24,7 +24,7 @@
  '(org-startup-folded 'overview)
  '(org-startup-indented t)
  '(package-selected-packages
-   '(dumb-jump projectile company lsp-ui lsp-mode cmake-font-lock cmake-mode magit beacon undo-tree yasnippet-snippets yasnippet flycheck zenburn-theme counsel ace-window org-ac org-bullets which-key try multiple-cursors use-package)))
+   '(smex dumb-jump projectile company lsp-ui lsp-mode cmake-font-lock cmake-mode magit beacon undo-tree yasnippet-snippets yasnippet flycheck zenburn-theme counsel ace-window org-ac org-bullets which-key try multiple-cursors use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

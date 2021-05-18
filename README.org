@@ -15,17 +15,17 @@ Pretty self explanatory: just setting some personal details about who's using Em
 
 ** Deactivation
 Deactivation of functionality I don't tend to use:
-  - Backup files
-  - Autosaving
-  - Start-up message
-  - Audible bell
-    #+begin_src emacs-lisp
-      (setq
-       make-backup-files nil
-       auto-save-default nil
-       inhibit-startup-message t
-       ring-bell-function 'ignore)
-    #+end_src
+- Backup files
+- Autosaving
+- Start-up message
+- Audible bell
+  #+begin_src emacs-lisp
+    (setq
+     make-backup-files nil
+     auto-save-default nil
+     inhibit-startup-message t
+     ring-bell-function 'ignore)
+  #+end_src
 
 ** UTF-8
 Configure Emacs for full UTF-8 compatability
@@ -47,7 +47,23 @@ Then, in cases where I don't want this to be true, I simply set ~:ensure nil~
   (setq use-package-always-ensure t)
 #+end_src
 
-**  Set meta for Darwin systems
+** Discard customizations
+Emacs has a comprehensive customization system that allows configuration changes interactively.
+Personally, I opt to ensure all the configuration I use for my environment is fully declarative.
+As such, the following configuration sets the ~custom-file~ to be a random temporary file created each time Emacs starts.
+This means any customizations made interactively are discarded entirely.
+#+begin_src emacs-lisp
+  (setq custom-file (make-temp-file ""))
+#+end_src
+
+** Just use 'y' or 'n' instead of 'yes' or 'no'
+You'll find ~yes-or-no~ prompts coming up in Emacs a lot.
+I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
+#+begin_src emacs-lisp
+  (fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+** Set meta for Darwin systems
 #+begin_src emacs-lisp
   (cond
    ((string-equal system-type "darwin")
@@ -55,164 +71,552 @@ Then, in cases where I don't want this to be true, I simply set ~:ensure nil~
 #+end_src
 
 ** Set the scratch buffer string
-   Set the scratch buffer's initial contents to include a comment with a timestamp of creation.
-   Not really all that useful, but cleaner than the default comment, and I like having something there.
-   #+begin_src emacs-lisp
-   (setq initial-scratch-message (format ";; Scratch buffer - started on %s\n\n" (current-time-string)))
-   #+end_src
+Set the scratch buffer's initial contents to include a comment with a timestamp of creation.
+Not really all that useful, but cleaner than the default comment, and I like having something there.
+#+begin_src emacs-lisp
+  (setq initial-scratch-message (format ";; Scratch buffer - started on %s\n\n" (current-time-string)))
+#+end_src
 
 ** Confirm quit
-   This adds a confirmation prompt when quitting Emacs - because I'm only human.
-   #+begin_src emacs-lisp
-   (setq confirm-kill-emacs 'yes-or-no-p)
-   #+End_src
+This adds a confirmation prompt when quitting Emacs - because I'm only human.
+#+begin_src emacs-lisp
+  (setq confirm-kill-emacs 'yes-or-no-p)
+#+End_src
 
 ** A few Darwin specific configurations
-   To make Emacs play a little nicer with window management, enable menu-bar-mode.
-   Also, set the frame's dimensions based on pixels - this makes Emacs play nicer with tiling
-   window managers, where no title bar is displayed.
-   #+begin_src emacs-lisp
-   (cond
-     ((string-equal system-type "darwin")
-       (menu-bar-mode t)
-       (setq frame-resize-pixelwise t)))
-   #+end_src
+To make Emacs play a little nicer with window management, enable menu-bar-mode.
+Also, set the frame's dimensions based on pixels - this makes Emacs play nicer with tiling
+window managers, where no title bar is displayed.
+#+begin_src emacs-lisp
+  (cond
+   ((string-equal system-type "darwin")
+    (menu-bar-mode t)
+    (setq frame-resize-pixelwise t)))
+#+end_src
 
 ** Follow symlinks in version control
-   If there are any symlinks in version controlled repositories, follow them
-   #+begin_src emacs-lisp
-   (setq vc-follow-symlinks t)
-   #+end_src
+If there are any symlinks in version controlled repositories, follow them
+#+begin_src emacs-lisp
+  (setq vc-follow-symlinks t)
+#+end_src
 
 ** Set explicit shell binary
-   Set the filepath to the binary to run when invoking ~term~ (or any of its siblings).
-   #+begin_src emacs-lisp
-   (setq explicit-shell-file-name "/usr/bin/zsh")
-   #+end_src
+Set the filepath to the binary to run when invoking ~term~ (or any of its siblings).
+#+begin_src emacs-lisp
+  (setq explicit-shell-file-name "/usr/bin/zsh")
+#+end_src
 
 
-   
-   
+      
 ** Configure FlySpell to use aspell
-   I use ~aspell~, so this simply sets [[https://www.emacswiki.org/emacs/FlySpell][Flyspell]] to use it and passes a couple extra arguments
-   #+begin_src emacs-lisp
-   (setq ispell-program-name "aspell")
-   (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_GB"))
-   #+end_src
+I use ~aspell~, so this simply sets [[https://www.emacswiki.org/emacs/FlySpell][Flyspell]] to use it and passes a couple extra arguments
+#+begin_src emacs-lisp
+  (setq ispell-program-name "aspell")
+  (setq ispell-extra-args '("--sug-mode=ultra" "--lang=en_GB"))
+#+end_src
 
 ** Calendar/Diary
-   Set the start of the week for the calendar to be Monday.
-   Sort entries when viewing diary items.
-   #+begin_src emacs-lisp
-   (setq calendar-week-start-day 1)
-   (setq diary-file "~/org/diary")
-   (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
-   #+end_src
+Set the start of the week for the calendar to be Monday.
+Sort entries when viewing diary items.
+#+begin_src emacs-lisp
+  (setq calendar-week-start-day 1)
+  (setq diary-file "~/org/diary")
+  (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
+#+end_src
 
 ** IRC
-   Emacs comes with a great builtin IRC client: ERC.
-   These are some general settings that're all pretty self explanatory: hide particular activity, autojoin channels for particular servers.
-   For convenience, I've also defined a ~erc-conn~ function for my usual connection parameters.
-   #+begin_src emacs-lisp
-   (use-package erc
-     :ensure nil
-     :config
-     (setq erc-hide-list '("PART" "QUIT" "JOIN"))
-     (setq erc-autojoin-channels-alist '(("freenode.net"
-       "#lobsters"
-       "#nixos"
-       "#nix-darwin"))
-       erc-server "irc.freenode.net"
-       erc-nick "cmacrae"))
-   (defun cm/erc-conn ()
-     (interactive)
-     (erc-tls :server "irc.freenode.net" :port 6697 :nick "spikespiegel"))
-   #+end_src
+Emacs comes with a great builtin IRC client: ERC.
+These are some general settings that're all pretty self explanatory: hide particular activity, autojoin channels for particular servers.
+For convenience, I've also defined a ~erc-conn~ function for my usual connection parameters.
+#+begin_src emacs-lisp
+  (use-package erc
+    :ensure nil
+    :config
+    (setq erc-hide-list '("PART" "QUIT" "JOIN"))
+    (setq erc-autojoin-channels-alist '(("freenode.net"
+                                         "#lobsters"
+                                         "#nixos"
+                                         "#nix-darwin"))
+          erc-server "irc.freenode.net"
+          erc-nick "cmacrae"))
+  (defun cm/erc-conn ()
+    (interactive)
+    (erc-tls :server "irc.freenode.net" :port 6697 :nick "spikespiegel"))
+#+end_src
 
 * Packages
-  This section covers external packages I use and their configuration, in no particular order
+This section covers external packages I use and their configuration, in no particular order
 
 ** Ivy|Counsel|Swiper
-   Absolutely brilliant interactive interface and completion frameworks.
-   These packages improve the Emacs experience so much.
-   As you can see from the ~:bind~ sections, I use these to replace some of the most used actions.
+Absolutely brilliant interactive interface and completion frameworks.
+These packages improve the Emacs experience so much.
+As you can see from the ~:bind~ sections, I use these to replace some of the most used actions.
 
 *** Ivy
-   - Suppress count visibility for ~ivy-read~
-   - Set initial input chars to ~nil~
-   - Provide ~insert~ and ~yank~ options for candidates
-   - Display the candidate menu at the current point position with ~ivy-posframe~
-   - Add some graphical niceties with ~ivy-rich~
+    - Suppress count visibility for ~ivy-read~
+    - Set initial input chars to ~nil~
+    - Provide ~insert~ and ~yank~ options for candidates
+    - Display the candidate menu at the current point position with ~ivy-posframe~
+    - Add some graphical niceties with ~ivy-rich~
 
+      #+begin_src emacs-lisp
+        (use-package ivy
+          :hook (after-init . ivy-mode)
+          :preface
+          (defun ivy-yank-action (x)
+            (kill-new x))
+
+          (defun ivy-copy-to-buffer-action (x)
+            (with-ivy-window
+              (insert x)))
+
+          :bind
+          ("C-s"     . swiper)
+          ("M-x"     . counsel-M-x)
+          ("C-x C-f" . counsel-find-file)
+
+          :config
+          (setq ivy-count-format          ""
+                ivy-initial-inputs-alist  nil)
+          (ivy-set-actions t
+                           '(("i" ivy-copy-to-buffer-action "insert")
+                             ("y" ivy-yank-action "yank"))))
+
+        (use-package ivy-posframe
+          :after ivy
+          :config
+          (set-face-background 'ivy-posframe-border   "#51afef")
+          (setq ivy-posframe-border-width             1
+                ivy-posframe-parameters               '((left-fringe . 8) (right-fringe . 8))
+                ivy-posframe-display-functions-alist  '((t      . ivy-posframe-display-at-point)
+                                                        (swiper . nil)))
+          (ivy-posframe-mode 1))
+
+        (use-package ivy-rich
+          :after counsel
+          :config (setq ivy-rich-path-style 'abbrev)
+          :init (ivy-rich-mode 1))
+      #+end_src
+
+      *** Counsel
+      - Set a prettier candidate delimiter for killring
+      - Bind common functions
+      - Bind common org functions
+      - Ensure `smex` is installed for better candidate matching
         #+begin_src emacs-lisp
-   (use-package ivy
-     :hook (after-init . ivy-mode)
-     :preface
-     (defun ivy-yank-action (x)
-       (kill-new x))
+          (use-package counsel
+            :init
+            (setq counsel-yank-pop-separator
+                  (concat "\n\n"
+                          (concat (apply 'concat (make-list 50 "---")) "\n")))
+            :bind (
+                   ("M-y" . counsel-yank-pop)
+                   ("C-h f" . counsel-describe-function)
+                   ("C-h v" . counsel-describe-variable)
 
-     (defun ivy-copy-to-buffer-action (x)
-       (with-ivy-window
-         (insert x)))
+                   :map org-mode-map
+                   ("C-c  C-j" . counsel-org-goto)
+                   ("C-c  C-q" . counsel-org-tag))
 
-     :bind
-     ("C-s"     . swiper)
-     ("M-x"     . counsel-M-x)
-     ("C-x C-f" . counsel-find-file)
+            :config
+            (use-package smex :ensure t))
+        #+end_src
 
-     :config
-     (setq ivy-count-format          ""
-           ivy-initial-inputs-alist  nil)
-     (ivy-set-actions t
-      '(("i" ivy-copy-to-buffer-action "insert")
-        ("y" ivy-yank-action "yank"))))
 
-   (use-package ivy-posframe
-     :after ivy
-     :config
-     (set-face-background 'ivy-posframe-border   "#51afef")
-     (setq ivy-posframe-border-width             1
-           ivy-posframe-parameters               '((left-fringe . 8) (right-fringe . 8))
-           ivy-posframe-display-functions-alist  '((t      . ivy-posframe-display-at-point)
-                                                   (swiper . nil)))
-     (ivy-posframe-mode 1))
 
-   (use-package ivy-rich
-     :after counsel
-     :config (setq ivy-rich-path-style 'abbrev)
-     :init (ivy-rich-mode 1))
-   #+end_src
 
-   *** Counsel
-    - Set a prettier candidate delimiter for killring
-    - Bind common functions
-    - Bind common org functions
-    - Ensure `smex` is installed for better candidate matching
+
+**
+
+** [[https://github.com/magit/magit][Magit]]
+The one true Git porcelain!
+Truely a joy to use - it surfaces the power of Git in such a fluent manner.
+Anyone using Git and Emacs *needs* Magit in their life!
+#+begin_src emacs-lisp
+  (use-package magit
+    :bind ("C-c m" . magit-status)
+    :init
+    (setq magit-completing-read-function 'ivy-completing-read))
+#+end_src
+
+** [[https://github.com/sshaw/git-link][git-link]]
+Create & yank URLs for popular git forges based on current file/buffer location.
+Handy for collaborating.
+#+begin_src emacs-lisp
+  (use-package git-link
+    :bind
+    ("C-c g l" . git-link))
+#+end_src
+
+** [[https://github.com/bbatsov/projectile][Projectile]]
+Project management based on version control repositories.
+Absolutely essential package for me. This makes hopping around and between various projects really easy.
+Not only that, but it allows project-wide actions. Like killing all buffers for a project, performing a project-wide find-and-replace, or a grep, etc.
+
+Some configuration I use:
+  - Setting the completion system to ~ivy~
+  - Adding an action to invoke ~neotree~ upon switching projects
+    #+begin_src emacs-lisp
+      (use-package projectile
+        :init
+        (setq projectile-completion-system 'ivy)
+        (setq projectile-switch-project-action 'neotree-projectile-action)
+        :config
+        (projectile-global-mode))
+    #+end_src
+
+** [[https://github.com/ericdanan/counsel-projectile][counsel-projectile]]
+Further integration of Counsel with Projectile than what's provided natively.
+As I use ~counsel-projectile-on~ to remap a bunch of Projectile's functions to their Counsel equivilents, but I want to use
+Perspective functionality, I remap ~projectile-switch-project~, after ~counsel-projectile-on~ has been called, to ~projectile-persp-switch-project~.
+This then masks ~counsel-projectile-switch-project~ and integrates Perspective when switching projects.
+#+begin_src emacs-lisp
+  (use-package counsel-projectile
+    :bind
+    ("C-c p s r" . counsel-projectile-rg)
+    (:map projectile-mode-map
+          ("C-c p p" . projectile-persp-switch-project)
+          ("C-c p f" . projectile-find-file))
+    :init
+    (counsel-projectile-mode))
+#+end_src
+
+** [[https://github.com/jaypei/emacs-neotree][NeoTree]]
+Sidebar filebrowser, very handy. People seem to have accepted Treemacs as the new norm, but I like NeoTree :)
+Here, I've defined some key mappings that make it a little nicer to interact with - they should be quite self-explanatory.
+#+begin_src emacs-lisp
+  (use-package neotree
+    :bind
+    ("C-;"     . neotree-show)
+    ("C-c C-;" . neotree-toggle)
+    (:map neotree-mode-map
+          ("C-c C-h" . neotree-hidden-file-toggle)
+          ("C-c C-y" . neotree-copy-filepath-to-yank-ring)
+          ("C-;"     . (lambda () (interactive) (select-window (previous-window)))))
+    :config
+    (setq neo-theme (if window-system 'icons 'arrows)))
+#+end_src
+
+** [[https://github.com/flycheck/flycheck][Flycheck]]
+Have Flycheck turned on for everything - checking stuff is always good!
+And for convenience, add a ~posframe~.
+#+begin_src emacs-lisp
+  (use-package flycheck
+    :hook
+    (after-init . global-flycheck-mode))
+
+  (use-package flycheck-posframe
+    :after flycheck
+    :hook (flycheck-mode . flycheck-posframe-mode))
+#+end_src
+
+** [[http://company-mode.github.io/][company-mode]]
+Slick auto-complete framework
+#+begin_src emacs-lisp
+  (use-package company
+    :hook (prog-mode . company-mode))
+#+end_src
+
+** [[https://github.com/abo-abo/ace-window][ace-window]]
+Jump around Emacs windows & frames using character prefixes.
+I use this constantly - it even works across multiple frames.
+Also added a hydra borrowed from [[https://oremacs.com/2015/01/29/more-hydra-goodness/][here]] for some really convenient movement/manipulation!
+#+begin_src emacs-lisp
+  (use-package ace-window
+    :bind ("M-o" . hydra-window/body)
+    :config
+    (setq aw-dispatch-always t)
+    (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+    (defhydra hydra-window (:color blue)
+      "window"
+      ("h" windmove-left "left")
+      ("j" windmove-down "down")
+      ("k" windmove-up "up")
+      ("l" windmove-right "right")
+      ("a" ace-window "ace")
+      ("s" (lambda () (interactive) (ace-window 4)) "swap")
+      ("d" (lambda () (interactive) (ace-window 16)) "delete")
+      ("q" nil "Quit")))
+#+end_src
+
+** [[https://github.com/Fuco1/smartparens][Smartparens]]
+Brilliant automatic balancing of pairs. Makes for a really nice experience when typing in any language - programming or not.
+Just check out some of the gifs in the project's README.
+#+begin_src emacs-lisp
+  (use-package smartparens
+    :config
+    (progn
+      (smartparens-global-mode)
+      (show-smartparens-global-mode t)))
+#+end_src
+
+** [[https://github.com/leathekd/erc-hl-nicks][erc-hl-nicks]]
+Nickname highlighting for ERC (IRC in Emacs)
+#+begin_src emacs-lisp
+  (use-package erc-hl-nicks)
+#+end_src
+
+** [[https://github.com/syohex/emacs-git-gutter][GitGutter]]
+Hints and actions in the buffer/fringe for bits being followed by Git.
+The configuration bellow gives little diff highlights in the fringe for changes.
+#+begin_src emacs-lisp
+  (use-package git-gutter
+    :init
+    (setq
+     git-gutter:modified-sign " "
+     git-gutter:added-sign " "
+     git-gutter:deleted-sign " ")
+    (global-git-gutter-mode t)
+    :hook
+    (window-setup . (lambda ()
+                      (set-face-background 'git-gutter:modified "#da8548")
+                      (set-face-background 'git-gutter:added "#98be65")
+                      (set-face-background 'git-gutter:deleted "#ff6c6b"))))
+#+end_src
+
+** [[https://github.com/jacktasia/dumb-jump][Dumb Jump]]
+Jump to definitions
+#+begin_src emacs-lisp
+  (use-package dumb-jump
+    :bind
+    ("C-c j" . hydra-dumb-jump/body)
+    :config
+    (setq dumb-jump-selector 'ivy)
+    (defhydra hydra-dumb-jump (:color blue)
+      "Dumb Jump"
+      ("g" dumb-jump-go "Jump to def")
+      ("p" dumb-jump-back "Jump back")
+      ("q" dumb-jump-quick-look "Quick look")
+      ("o" dumb-jump-go-other-window "Jump in other window")
+      ("q" nil "Quit")))
+#+end_src
+
+** [[http://www.dr-qubit.org/undo-tree/undo-tree.el][undo-tree]]
+Powerful undo actions formulated in a tree structure
+#+begin_src emacs-lisp
+  (use-package undo-tree
+    :config
+    (global-undo-tree-mode))
+#+end_src
+
+** [[https://github.com/julienXX/ivy-lobsters][ivy-lobsters]]
+That's right, I'm a crustacean :crab:
+#+begin_src emacs-lisp
+  (use-package ivy-lobsters)
+#+end_src
+
+* Appearance
+Configuration related to the appearance of Emacs
+
+** Hide stuff
+Hide various elements of the Emacs GUI:
+  - toolbar
+  - menubar
+  - blinking cursor
+  - macOS titlebar (transparent)
+  - frame title
+    #+begin_src emacs-lisp
+      (dolist (mode
+               '(tool-bar-mode
+                 blink-cursor-mode))
+        (funcall mode 0))
+
+      (cond
+       ((string-equal system-type "darwin")
+        (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))))
+      (setq frame-title-format '(""))
+    #+end_src
+
+** Centered buffers
+   A really simple package that will centre your buffer contents in the frame.
+   Purely cosmetic, but I do find it helps with focus from time to time.
+   If I'm working on something that only needs one buffer, I'll usually centre it.
+   I have this bound to a key in my ~toggle-mode~ hydra so I can switch it on/off easily.
    #+begin_src emacs-lisp
-   (use-package counsel
-     :init
-     (setq counsel-yank-pop-separator
-       (concat "\n\n"
-         (concat (apply 'concat (make-list 50 "---")) "\n")))
-     :bind (
-     ("M-y" . counsel-yank-pop)
-     ("C-h f" . counsel-describe-function)
-     ("C-h v" . counsel-describe-variable)
-
-     :map org-mode-map
-     ("C-c  C-j" . counsel-org-goto)
-     ("C-c  C-q" . counsel-org-tag))
-
-     :config
-     (use-package smex :ensure t))
+   (use-package centered-window)
    #+end_src
 
+** Current line highlighting
+   Highlights the current line of the point.
+   Just helps to visualise where you are in the buffer.
+   I turn it on globally, but explicitly turn it off where I don't deem it necessary.
+   #+begin_src emacs-lisp
+   (global-hl-line-mode t)
+
+   (make-variable-buffer-local 'global-hl-line-mode)
+   (defvar my-ghd-modes '(
+                          shell-mode-hook
+                          git-commit-mode-hook
+                          term-mode-hook
+                         )
+     "Modes to ensure global-hl-line-mode is disabled for.")
+     (dolist (m my-ghd-modes)
+       (add-hook m (lambda () (setq global-hl-line-mode nil))))
+   #+end_src
+
+** Indent guides
+   Cool little package to provide indentation guides.
+   This will display a line of ~|~ characters with a comment face to indicate the indentation of the current block.
+   #+begin_src emacs-lisp
+   (use-package highlight-indent-guides
+     :hook
+     (prog-mode . highlight-indent-guides-mode)
+     :config
+     (setq highlight-indent-guides-auto-odd-face-perc        15
+           highlight-indent-guides-auto-even-face-perc       15
+           highlight-indent-guides-auto-character-face-perc  20
+	   highlight-indent-guides-responsive                'stack
+           highlight-indent-guides-method                    'character))
+   #+end_src
+
+** Theme
+   /Fashion First!/
+
+   Right now, I'm using the beautiful ~doom-one~ & ~doom-solarized-light~ themes from
+   [[https://github.com/hlissner][hlissner]]'s [[https://github.com/hlissner/emacs-doom-themes][doom-themes]].
+   They're high contrast, and easy on the eyes, and right enough to easily distinguish
+   between different constructs, but not sickening.
+   #+begin_src emacs-lisp
+   (use-package doom-themes
+     :init
+     (setq doom-themes-enable-bold        t
+           doom-themes-enable-italic      t
+	   doom-themes-neotree-file-icons t
+           doom-one-brighter-comments     t)
+     (load-theme 'doom-one t)
+     (doom-themes-neotree-config))
+   #+end_src
+
+** Modeline
+   The ever important modeline! Making your modeline look good and express useful information is vital, in my opinion.
+   There's a lot of info you can cram in there - but to do so tastefully and efficiently is key.
+   #+begin_src emacs-lisp
+   (use-package doom-modeline
+     :hook (after-init . doom-modeline-mode)
+     :config
+     (setq doom-modeline-persp-name              nil
+           doom-modeline-buffer-encoding         nil
+           doom-modeline-icon                    t
+           doom-modeline-buffer-file-name-style  'truncate-with-project))
+   #+end_src
+
+* Language Config
+  Configuration specific to languages I tend to use
+
+** Language Server Protocol
+   Serious "IDEness"...
+   #+begin_src emacs-lisp
+   (use-package lsp-mode
+     :ensure t
+     :commands (lsp lsp-deferred)
+     :hook     (go-mode . lsp-deferred)
+     :config
+     ;; Performance tweaks
+     (setq gc-cons-threshold 100000000)
+     (setq read-process-output-max (* 1024 1024))
+
+     ;; Set up before-save hooks to format buffer and add/delete imports.
+     (defun lsp-go-install-save-hooks ()
+       (add-hook 'before-save-hook #'lsp-format-buffer t t)
+       (add-hook 'before-save-hook #'lsp-organize-imports t t))
+     (add-hook 'go-mode-hook #'lsp-go-install-save-hooks))
+
+   (use-package lsp-ui :commands lsp-ui-mode)
+   (use-package company
+     :config
+     (setq company-idle-delay 0)
+     (setq company-minimum-prefix-length 1))
+   (use-package company-lsp :commands company-lsp)
+   (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+   #+end_src
+
+** HashiCorp
+   Compatability with ~HCL~ and Terraform syntax.
+   Activate ~hcl-mode~ for ~.nomad~ files.
+   #+begin_src emacs-lisp
+   (use-package hcl-mode
+     :mode "\\.nomad\\'")
+
+   (use-package terraform-mode
+     :hook
+     (terraform-mode . company-mode)
+     (terraform-mode . (lambda ()
+                         (when (and (stringp buffer-file-name)
+                           (string-match "\\.tf\\(vars\\)?\\'" buffer-file-name))
+                             (aggressive-indent-mode 0))))
+
+     (before-save . terraform-format-buffer))
+   #+end_src
+
+* Org Config
+  Configuration for the brilliant Org mode!
+ 
+** General
+   - A few global keybindings for captures, agenda, etc.
+   - Turn on flyspell mode
+   - Follow filesystem links for Org files
+   - Agenda files directory
+   - Custom capture templates
+   #+begin_src emacs-lisp
+   (global-set-key "\C-cl" 'org-store-link)
+   (global-set-key "\C-cc" 'org-capture)
+   (global-set-key "\C-ca" 'org-agenda)
+   (global-set-key "\C-cb" 'org-iswitchb)
+   (use-package org-mode
+     :ensure nil
+     :hook (org-mode . flyspell-mode)
+     :config
+       (setq org-return-follows-link t
+             org-src-fontify-natively t
+             org-agenda-files '("~/org")
+             org-capture-templates
+             '(("t" "Todo" entry (file+headline "~/org/inbox.org" "Tasks")
+                "* TODO %^{Brief Description} %^g\n%?\tAdded: %U")
+               ("r" "ToRead" entry (file+headline "~/org/inbox.org" "Tasks")
+                "* TOREAD %^{Title} %^g\n%?\tLink: %c")
+               ("p" "Project" entry (file+headline "~/org/inbox.org" "Projects")
+                "* %^{Brief Description} %^g\n%?\tAdded: %U")
+               ("m" "Maybe" entry (file+headline "~/org/inbox.org" "Maybe/Some Day")
+                "* %^{Brief Description} %^g\n%?\tAdded: %U"))))
+   #+end_src
+
+** ~org-bullets~
+   Make Org headings look a bit fancier
+   #+begin_src emacs-lisp
+   (use-package org-bullets
+     :hook
+     (org-mode . (lambda () (org-bullets-mode 1))))
+   #+end_src
+
+ 
 
 
 
 
 
-   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 * interface tweaks
 #+BEGIN_SRC emacs-lisp
   (setq inhibit-startup-message t)
@@ -232,7 +636,7 @@ Then, in cases where I don't want this to be true, I simply set ~:ensure nil~
 You'll find ~yes-or-no~ prompts coming up in Emacs a lot.
 I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
 #+begin_src emacs-lisp
-  (fset 'yes-or-no-p 'y-or-n-p)
+  ;;  (fset 'yes-or-no-p 'y-or-n-p)
 #+end_src 
 
 * alias
@@ -243,12 +647,12 @@ I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
 
 * brackets
 #+begin_src emacs-lisp
-  (use-package smartparens
-    :ensure t
-    :config
-    (setq sp-show-pair-from-inside nil)
-    (require 'smartparens-config)
-    :diminish smartparens-mode)
+  ;; (use-package smartparens
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq sp-show-pair-from-inside nil)
+  ;;   (require 'smartparens-config)
+  ;;   :diminish smartparens-mode)
 
   ;; (use-package paren
   ;;   :config
@@ -362,20 +766,20 @@ I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
 
 * theme
 #+BEGIN_SRC emacs-lisp
-  (use-package zenburn-theme
-    :ensure t
-    :config (load-theme 'zenburn t)
-    )
+  ;; (use-package zenburn-theme
+  ;;   :ensure t
+  ;;   :config (load-theme 'zenburn t)
+  ;;   )
 #+END_SRC
 
 * flycheck
 #+BEGIN_SRC emacs-lisp
-  (use-package flycheck
-    :ensure t
-    :commands flycheck-mode
-    :init
-    (add-hook 'c++-mode-hook 'flycheck-mode)
-    (add-hook 'c-mode-hook 'flycheck-mode))
+  ;; (use-package flycheck
+  ;;   :ensure t
+  ;;   :commands flycheck-mode
+  ;;   :init
+  ;;   (add-hook 'c++-mode-hook 'flycheck-mode)
+  ;;   (add-hook 'c-mode-hook 'flycheck-mode))
 
 #+END_SRC
 
@@ -392,10 +796,10 @@ I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
 
 * undo tree
 #+begin_src emacs-lisp  
-  (use-package undo-tree
-    :ensure t
-    :init
-    (global-undo-tree-mode))
+  ;; (use-package undo-tree
+  ;;   :ensure t
+  ;;   :init
+  ;;   (global-undo-tree-mode))
 #+end_src
 
 * misc packages
@@ -414,14 +818,14 @@ I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
 
 * magit
 #+begin_src emacs-lisp 
-  (use-package magit
-    :ensure t
-    :init
-    (message "Loading Magit!")
-    :config
-    (message "Loaded Magit!")
-    :bind (("C-x g" . magit-status)
-           ("C-x C-g" . magit-status)))
+  ;; (use-package magit
+  ;;   :ensure t
+  ;;   :init
+  ;;   (message "Loading Magit!")
+  ;;   :config
+  ;;   (message "Loaded Magit!")
+  ;;   :bind (("C-x g" . magit-status)
+  ;;          ("C-x C-g" . magit-status)))
 #+end_src
 
 * cmake
@@ -461,48 +865,48 @@ I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
 
 * lsp
 #+begin_src emacs-lisp 
-  ;; ;; set prefix for lsp-command-keymap (few alternatives - "s-l", "C-l")
-  (setq lsp-keymap-prefix "C-c l")
-  ;; (setq company-clang-executable "/usr/local/Cellar/llvm/12.0.0/bin/clang-12")
-  ;; (setq lsp-clients-clangd-executable "/usr/local/Cellar/llvm/12.0.0/bin/clangd")
+  ;; ;; ;; set prefix for lsp-command-keymap (few alternatives - "s-l", "C-l")
+  ;; (setq lsp-keymap-prefix "C-c l")
+  ;; ;; (setq company-clang-executable "/usr/local/Cellar/llvm/12.0.0/bin/clang-12")
+  ;; ;; (setq lsp-clients-clangd-executable "/usr/local/Cellar/llvm/12.0.0/bin/clangd")
 
-  (use-package lsp-mode
-    :ensure t
-    :commands lsp
-    :hook ((c-mode c++-mode cpp-mode-hook) . lsp)
-    )
+  ;; (use-package lsp-mode
+  ;;   :ensure t
+  ;;   :commands lsp
+  ;;   :hook ((c-mode c++-mode cpp-mode-hook) . lsp)
+  ;;   )
 
-  (use-package lsp-ui
-    :ensure t
-    :hook (lsp-mode . lsp-ui-mode))
+  ;; (use-package lsp-ui
+  ;;   :ensure t
+  ;;   :hook (lsp-mode . lsp-ui-mode))
 
-  ;; (use-package company-lsp
-  ;;   ;; company-mode completion
-  ;;   :commands company-lsp
-  ;;   :config (push 'company-lsp company-backends))
+  ;; ;; (use-package company-lsp
+  ;; ;;   ;; company-mode completion
+  ;; ;;   :commands company-lsp
+  ;; ;;   :config (push 'company-lsp company-backends))
 
-  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+  ;; (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
 
-  (use-package lsp-treemacs
-    ;;:ensure t
-    :after treemacs
-    ;; project wide overview
-    :commands lsp-treemacs-errors-list)
+  ;; (use-package lsp-treemacs
+  ;;   ;;:ensure t
+  ;;   :after treemacs
+  ;;   ;; project wide overview
+  ;;   :commands lsp-treemacs-errors-list)
 
-  ;; (use-package dap-mode
-  ;;   :commands (dap-debug dap-debug-edit-template))
+  ;; ;; (use-package dap-mode
+  ;; ;;   :commands (dap-debug dap-debug-edit-template))
 
 #+end_src
 
 * company
 #+begin_src emacs-lisp 
-  (use-package company
-    :ensure t
-    :config
-    (setq company-idle-delay 0)
-    (setq company-minimum-prefix-length 3)
+  ;; (use-package company
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq company-idle-delay 0)
+  ;;   (setq company-minimum-prefix-length 3)
 
-    (global-company-mode t))
+  ;;   (global-company-mode t))
 
 
   ;; (use-package irony
@@ -535,43 +939,43 @@ I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
 * projectile
 This will manage my workspaces
 #+begin_src emacs-lisp 
-  (use-package projectile
-    :ensure t
-    :bind ("C-c p" . projectile-command-map)
-    :config
-    (projectile-global-mode)
-    (setq projectile-completion-system 'ivy))
+  ;; (use-package projectile
+  ;;   :ensure t
+  ;;   :bind ("C-c p" . projectile-command-map)
+  ;;   :config
+  ;;   (projectile-global-mode)
+  ;;   (setq projectile-completion-system 'ivy))
 #+end_src
 
 * terraform
 #+begin_src emacs-lisp 
-  (use-package hcl-mode
-    :mode "\\.nomad\\'")
+  ;; (use-package hcl-mode
+  ;;   :mode "\\.nomad\\'")
 
-  (use-package terraform-mode
-    :hook
-    (terraform-mode . company-mode)
-    (terraform-mode . (lambda ()
-                        (when (and (stringp buffer-file-name)
-                                   (string-match "\\.tf\\(vars\\)?\\'" buffer-file-name))
-                          (aggressive-indent-mode 0))))
+  ;; (use-package terraform-mode
+  ;;   :hook
+  ;;   (terraform-mode . company-mode)
+  ;;   (terraform-mode . (lambda ()
+  ;;                       (when (and (stringp buffer-file-name)
+  ;;                                  (string-match "\\.tf\\(vars\\)?\\'" buffer-file-name))
+  ;;                         (aggressive-indent-mode 0))))
 
-    (before-save . terraform-format-buffer))
+  ;;   (before-save . terraform-format-buffer))
 #+end_src
 >
 * dumb jump
 #+begin_src emacs-lisp 
-  (use-package dumb-jump
-    :bind (("M-g o" . dumb-jump-go-other-window)
-           ("M-g j" . dumb-jump-go)
-           ("M-g x" . dumb-jump-go-prefer-external)
-           ("M-g z" . dumb-jump-go-prefer-external-other-window))
-    :config 
-    (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
-    :init
-    (dumb-jump-mode)
-    :ensure
-    )
+  ;; (use-package dumb-jump
+  ;;   :bind (("M-g o" . dumb-jump-go-other-window)
+  ;;          ("M-g j" . dumb-jump-go)
+  ;;          ("M-g x" . dumb-jump-go-prefer-external)
+  ;;          ("M-g z" . dumb-jump-go-prefer-external-other-window))
+  ;;   :config 
+  ;;   (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
+  ;;   :init
+  ;;   (dumb-jump-mode)
+  ;;   :ensure
+  ;;   )
 #+end_src
 * lisp
 #+begin_src shell 
