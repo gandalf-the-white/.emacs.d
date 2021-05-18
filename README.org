@@ -208,35 +208,29 @@ As you can see from the ~:bind~ sections, I use these to replace some of the mos
       :init (ivy-rich-mode 1))
   #+end_src
 
-  *** Counsel
-  - Set a prettier candidate delimiter for killring
-  - Bind common functions
-  - Bind common org functions
-  - Ensure `smex` is installed for better candidate matching
-    #+begin_src emacs-lisp
-      (use-package counsel
-        :init
-        (setq counsel-yank-pop-separator
-              (concat "\n\n"
-                      (concat (apply 'concat (make-list 50 "---")) "\n")))
-        :bind (
-               ("M-y" . counsel-yank-pop)
-               ("C-h f" . counsel-describe-function)
-               ("C-h v" . counsel-describe-variable)
+*** Counsel
+- Set a prettier candidate delimiter for killring
+- Bind common functions
+- Bind common org functions
+- Ensure `smex` is installed for better candidate matching
+  #+begin_src emacs-lisp
+    (use-package counsel
+      :init
+      (setq counsel-yank-pop-separator
+            (concat "\n\n"
+                    (concat (apply 'concat (make-list 50 "---")) "\n")))
+      :bind (
+             ("M-y" . counsel-yank-pop)
+             ("C-h f" . counsel-describe-function)
+             ("C-h v" . counsel-describe-variable)
 
-               :map org-mode-map
-               ("C-c  C-j" . counsel-org-goto)
-               ("C-c  C-q" . counsel-org-tag))
+             :map org-mode-map
+             ("C-c  C-j" . counsel-org-goto)
+             ("C-c  C-q" . counsel-org-tag))
 
-        :config
-        (use-package smex :ensure t))
-    #+end_src
-
-
-
-
-
-**
+      :config
+      (use-package smex :ensure t))
+  #+end_src
 
 ** [[https://github.com/magit/magit][Magit]]
 The one true Git porcelain!
@@ -325,7 +319,7 @@ Slick auto-complete framework
 #+begin_src emacs-lisp
   (use-package company
     :init
-    (setq company-idle-delay nil  ; avoid auto completion popup, use TAB
+    (setq company-idle-delay 0  ; avoid auto completion popup, use TAB
                                           ; to show it
           company-async-timeout 15        ; completion may be slow
           company-tooltip-align-annotations t)
@@ -553,7 +547,12 @@ between different constructs, but not sickening.
 
   (use-package zenburn-theme
     :ensure t
-    :config (load-theme 'zenburn t)
+    ;; :config (load-theme 'zenburn t)
+    )
+
+  (use-package slime-theme
+    :ensure t
+    :config (load-theme 'slime t)
     )
 #+end_src
 
