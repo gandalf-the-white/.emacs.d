@@ -576,21 +576,21 @@ Configuration specific to languages I tend to use
 Serious "IDEness"...
 #+begin_src emacs-lisp
   (use-package lsp-mode
-    :ensure t
-    :commands (lsp lsp-deferred)
-    :hook     (go-mode . lsp-deferred)
-    :config
-    ;; Performance tweaks
-    (setq gc-cons-threshold 100000000)
-    (setq read-process-output-max (* 1024 1024))
-
-    ;; Set up before-save hooks to format buffer and add/delete imports.
-    (defun lsp-go-install-save-hooks ()
-      (add-hook 'before-save-hook #'lsp-format-buffer t t)
-      (add-hook 'before-save-hook #'lsp-organize-imports t t))
-    (add-hook 'go-mode-hook #'lsp-go-install-save-hooks))
+    :defer t
+    :commands lsp
+    :custom
+    (lsp-auto-guess-root nil)
+    (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
+    (lsp-file-watch-threshold 2000)
+    (read-process-output-max (* 1024 1024))
+    (lsp-eldoc-hook nil)
+    :bind (:map lsp-mode-map ("C-c C-f" . lsp-format-buffer))
+    :hook ((java-mode python-mode go-mode
+                      js-mode js2-mode typescript-mode web-mode
+                      c-mode c++-mode objc-mode) . lsp))
 
   (use-package lsp-ui :commands lsp-ui-mode)
+
   (use-package company
     :config
     (setq company-idle-delay 0)
