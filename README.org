@@ -3,12 +3,96 @@
 #+STARTUP: overview
 #+PROPERTY: header-args :comments yes :results silent
 
-* personnal
+* General
+This section covers many different types of configuration for native Emacs capabilities
+
+** Personal stuff
+Pretty self explanatory: just setting some personal details about who's using Emacs.
 #+begin_src emacs-lisp 
   (setq user-full-name "Spike Spiegel"
         user-mail-address "spikeandfaye@gmail.com")
 #+end_src
 
+** Deactivation
+Deactivation of functionality I don't tend to use:
+  - Backup files
+  - Autosaving
+  - Start-up message
+  - Audible bell
+    #+begin_src emacs-lisp
+      (setq
+       make-backup-files nil
+       auto-save-default nil
+       inhibit-startup-message t
+       ring-bell-function 'ignore)
+    #+end_src
+
+** UTF-8
+Configure Emacs for full UTF-8 compatability
+#+begin_src emacs-lisp
+  (set-charset-priority 'unicode)
+  (setq locale-coding-system   'utf-8)
+  (set-terminal-coding-system  'utf-8)
+  (set-keyboard-coding-system  'utf-8)
+  (set-selection-coding-system 'utf-8)
+  (prefer-coding-system        'utf-8)
+  (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
+#+end_src
+
+** Global ~:ensure~ for ~use-package~ statements
+~use-package~ has an ~:ensure~ keyword which dictates whether packages are installed or not.
+As most of my ~use-package~ configurations are for external packages, I set this to always ensure.
+Then, in cases where I don't want this to be true, I simply set ~:ensure nil~
+#+begin_src emacs-lisp
+  (setq use-package-always-ensure t)
+#+end_src
+
+**  Set meta for Darwin systems
+#+begin_src emacs-lisp
+  (cond
+   ((string-equal system-type "darwin")
+    (setq mac-option-modifier 'meta)))
+#+end_src
+
+** Set the scratch buffer string
+   Set the scratch buffer's initial contents to include a comment with a timestamp of creation.
+   Not really all that useful, but cleaner than the default comment, and I like having something there.
+   #+begin_src emacs-lisp
+   (setq initial-scratch-message (format ";; Scratch buffer - started on %s\n\n" (current-time-string)))
+   #+end_src
+
+** Confirm quit
+   This adds a confirmation prompt when quitting Emacs - because I'm only human.
+   #+begin_src emacs-lisp
+   (setq confirm-kill-emacs 'yes-or-no-p)
+   #+End_src
+
+** A few Darwin specific configurations
+   To make Emacs play a little nicer with window management, enable menu-bar-mode.
+   Also, set the frame's dimensions based on pixels - this makes Emacs play nicer with tiling
+   window managers, where no title bar is displayed.
+   #+begin_src emacs-lisp
+   (cond
+     ((string-equal system-type "darwin")
+       (menu-bar-mode t)
+       (setq frame-resize-pixelwise t)))
+   #+end_src
+
+** Follow symlinks in version control
+   If there are any symlinks in version controlled repositories, follow them
+   #+begin_src emacs-lisp
+   (setq vc-follow-symlinks t)
+   #+end_src
+
+** Set explicit shell binary
+   Set the filepath to the binary to run when invoking ~term~ (or any of its siblings).
+   #+begin_src emacs-lisp
+   (setq explicit-shell-file-name "/usr/bin/zsh")
+   #+end_src
+
+
+   
+   
 * interface tweaks
 #+BEGIN_SRC emacs-lisp
   (setq inhibit-startup-message t)
@@ -19,12 +103,17 @@
   (column-number-mode t)
   (size-indication-mode t)
 
-  (fset 'yes-or-no-p 'y-or-n-p)
-
   (setq-default tab-width 4
                 indent-tabs-mode nil
                 c-basic-offset 4)
 #+END_SRC
+
+* Just use 'y' or 'n' instead of 'yes' or 'no'
+You'll find ~yes-or-no~ prompts coming up in Emacs a lot.
+I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
+#+begin_src emacs-lisp
+  (fset 'yes-or-no-p 'y-or-n-p)
+#+end_src 
 
 * alias
 #+BEGIN_SRC emacs-lisp
@@ -96,10 +185,10 @@
 * org mode
 #+BEGIN_SRC emacs-lisp
   (use-package org-bullets
-      :ensure t
-          :init
-          (add-hook 'org-mode-hook (lambda ()
-                              (org-bullets-mode 1))))
+    :ensure t
+    :init
+    (add-hook 'org-mode-hook (lambda ()
+                               (org-bullets-mode 1))))
 #+END_SRC
 
 * ace window
