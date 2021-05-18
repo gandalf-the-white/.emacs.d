@@ -324,10 +324,16 @@ And for convenience, add a ~posframe~.
 Slick auto-complete framework
 #+begin_src emacs-lisp
   (use-package company
-    :ensure t
-    :config
-    (add-hook 'after-init-hook 'global-company-mode))
-
+    :init
+    (setq company-idle-delay nil  ; avoid auto completion popup, use TAB
+                                          ; to show it
+          company-async-timeout 15        ; completion may be slow
+          company-tooltip-align-annotations t)
+    :hook (after-init . global-company-mode)
+    :bind
+    (:map prog-mode-map
+          ("C-i" . company-indent-or-complete-common)
+          ("C-M-i" . counsel-company)))
 #+end_src
 
 ** [[https://github.com/abo-abo/ace-window][ace-window]]
@@ -616,30 +622,25 @@ Activate ~hcl-mode~ for ~.nomad~ files.
 Slime than sly failed on MacOS
 #+begin_src emacs-lisp 
   (use-package slime-company
-    :after (slime company)
-    :config (setq slime-company-completion 'fuzzy
-                  slime-company-after-completion 'slime-company-just-one-space))
+    :defer)
 
   (use-package slime
-    :ensure t
-    :defer t
+    :demand
     :init
     (setq inferior-lisp-program "sbcl")
-    :config
-    (use-package slime-company
-      :ensure t)
     (add-hook 'slime-mode-hook
               (lambda ()
                 (load (expand-file-name "~/quicklisp/slime-helper.el"))
                 (add-to-list 'slime-contribs 'slime-fancy)
-                (add-to-list 'slime-contribs 'inferior-slime))))
-
+                (add-to-list 'slime-contribs 'inferior-slime)))
+    :config
+    (slime-setup '(slime-fancy slime-company slime-cl-indent)))
 
   ;; (setq company-idle-delay 0)
   ;; (setq company-minimum-prefix-length 3)
   ;; (load (expand-file-name "~/quicklisp/slime-helper.el"))
   ;; (setq inferior-lisp-program "/usr/local/bin/sbcl")
-  (slime-setup '(slime-fancy slime-quicklisp slime-asdf slime-company slime-banner slime-indentation))
+  ;; (slime-setup '(slime-fancy slime-quicklisp slime-asdf slime-company slime-banner slime-indentation))
 
   ;; ;; Stop SLIME's REPL from grabbing DEL, which is annoying when
   ;; ;; backspacing over a '('
