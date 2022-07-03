@@ -581,38 +581,27 @@ Configuration specific to languages I tend to use
 Serious "IDEness"...
 #+begin_src emacs-lisp
   (use-package lsp-mode
-    :ensure t
-    ;; uncomment to enable gopls http debug server
-    ;; :custom (lsp-gopls-server-args '("-debug" "127.0.0.1:0"))
-    :commands (lsp lsp-deferred)
-    :config (progn
-              ;; use flycheck, not flymake
-              (setq lsp-prefer-flymake nil)))
+    :defer t
+    :commands lsp
+    :custom
+    (lsp-auto-guess-root nil)
+    (lsp-prefer-flymake nil) ; Use flycheck instead of flymake
+    (lsp-file-watch-threshold 2000)
+    (read-process-output-max (* 1024 1024))
+    (lsp-eldoc-hook nil)
+    :bind (:map lsp-mode-map ("C-c C-f" . lsp-format-buffer))
+    :hook ((java-mode python-mode go-mode
+                      js-mode js2-mode typescript-mode web-mode
+                      c-mode c++-mode objc-mode) . lsp))
 
-  (use-package lsp-ui
-  :ensure t
-  :commands lsp-ui-mode
-  :config (progn
-            ;; disable inline documentation
-            (setq lsp-ui-sideline-enable nil)
-            ;; disable showing docs on hover at the top of the window
-            (setq lsp-ui-doc-enable nil))
-  )
+  (use-package lsp-ui :commands lsp-ui-mode)
 
   (use-package company
-  :ensure t
-  :config (progn
-            ;; don't add any dely before trying to complete thing being typed
-            ;; the call/response to gopls is asynchronous so this should have little
-            ;; to no affect on edit latency
-            (setq company-idle-delay 0)
-            ;; start completing after a single character instead of 3
-            (setq company-minimum-prefix-length 1)
-            ;; align fields in completions
-            (setq company-tooltip-align-annotations t)
-            )
-  )
-  
+    :config
+    (setq company-idle-delay 0)
+    (setq company-minimum-prefix-length 1))
+  ;; (use-package company-lsp :commands company-lsp)
+  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
 #+end_src
 
 ** HashiCorp
@@ -664,23 +653,6 @@ Slime than sly failed on MacOS
   ;;     (read-kbd-macro paredit-backward-delete-key) nil))
 #+end_src
 
-** Go mode
-#+begin_src emacs-lisp 
-  (use-package go-mode
-  :ensure t
-  :bind (
-         ;; If you want to switch existing go-mode bindings to use lsp-mode/gopls instead
-         ;; uncomment the following lines
-         ;; ("C-c C-j" . lsp-find-definition)
-         ;; ("C-c C-d" . lsp-describe-thing-at-point)
-         )
-  :hook ((go-mode . lsp-deferred)
-         (before-save . lsp-format-buffer)
-         (before-save . lsp-organize-imports)))
-
-  (provide 'gopls-config)
-#+end_src
-
 * Org Config
 Configuration for the brilliant Org mode!
  
@@ -713,7 +685,7 @@ Configuration for the brilliant Org mode!
                "* %^{Brief Description} %^g\n%?\tAdded: %U"))))
   #+end_src
 
-** [[[https://github.com/sabof/org-bullets][Org bullets]]]
+** ~org-bullets~
 Make Org headings look a bit fancier
 #+begin_src emacs-lisp
   (use-package org-bullets
@@ -746,5 +718,408 @@ Make Org headings look a bit fancier
 
 
 
+
+
+
+
+* interface tweaks
+#+BEGIN_SRC emacs-lisp
+  (setq inhibit-startup-message t)
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+
+  (line-number-mode t)
+  (column-number-mode t)
+  (size-indication-mode t)
+
+  (setq-default tab-width 4
+                indent-tabs-mode nil
+                c-basic-offset 4)
+#+END_SRC
+
+* Just use 'y' or 'n' instead of 'yes' or 'no'
+You'll find ~yes-or-no~ prompts coming up in Emacs a lot.
+I'd much rather just type ~y~ or ~n~ than ~yes~ or ~no~ every time...
+#+begin_src emacs-lisp
+  ;;  (fset 'yes-or-no-p 'y-or-n-p)
+#+end_src 
+
+* alias
+#+BEGIN_SRC emacs-lisp
+  (defalias 'list-buffers 'ibuffer)
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+
+* brackets
+#+begin_src emacs-lisp
+  ;; (use-package smartparens
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq sp-show-pair-from-inside nil)
+  ;;   (require 'smartparens-config)
+  ;;   :diminish smartparens-mode)
+
+  ;; (use-package paren
+  ;;   :config
+  ;;   (show-paren-mode +1))
+
+  ;; (use-package elec-pair
+  ;;   :config
+  ;;   (electric-pair-mode +1))
+#+end_src
+
+* display number
+#+begin_src emacs-lisp
+  ;; (column-number-mode)                    
+  (global-display-line-numbers-mode t)
+
+  (dolist (mode '(org-mode-hook
+                  term-mode-hook
+                  shell-mode-hook
+                  treemacs-mode-hook
+                  eshell-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 0))))
+
+#+end_src
+
+* multi cursor
+#+begin_src emacs-lisp 
+  ;; (use-package multiple-cursors
+  ;;   :ensure t
+  ;;   :bind (("C-c m m" . #'mc/edit-lines )
+  ;;          ("C-c m d" . #'mc/mark-all-dwim )))
+#+end_src
+
+* try
+#+BEGIN_SRC emacs-lisp
+  (use-package try
+    :ensure t)
+#+END_SRC
+
+* which key
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :ensure t
+    :config (which-key-mode))
+#+END_SRC
+
+* treemacs
+#+begin_src emacs-lisp 
+  ;; (use-package treemacs
+  ;;   :bind
+  ;;   (("C-c t" . treemacs)
+  ;;    ("s-a" . treemacs)))
+#+end_src
+
+* org mode
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package org-bullets
+  ;;   :ensure t
+  ;;   :init
+  ;;   (add-hook 'org-mode-hook (lambda ()
+  ;;                              (org-bullets-mode 1))))
+#+END_SRC
+
+* ace window
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :ensure t
+    :init
+    (progn
+      (global-set-key [remap other-window] 'ace-window)))
+#+END_SRC
+  
+* counsel
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package counsel
+  ;;   :ensure t
+  ;;   :bind
+  ;;   (("M-y" . counsel-yank-pop)
+  ;;    :map ivy-minibuffer-map
+  ;;    ("M-y" . ivy-next-line)))
+
+  ;; (use-package ivy
+  ;;   :ensure t
+  ;;   :diminish (ivy-mode)
+  ;;   :bind (("C-x b" . ivy-switch-buffer))
+  ;;   :config
+  ;;   (ivy-mode 1)
+  ;;   (setq ivy-use-virtual-buffers t)
+  ;;   (setq ivy-display-style 'fancy))
+
+  ;; (use-package swiper
+  ;;   :ensure try
+  ;;   :bind (("C-s" . swiper)
+  ;;          ("C-r" . swiper)
+  ;;          ("C-c C-r" . ivy-resume)
+  ;;          ("M-x" . counsel-M-x)
+  ;;          ("C-x C-f" . counsel-find-file))
+  ;;   :config
+  ;;   (progn
+  ;;     (ivy-mode)
+  ;;     (setq ivy-use-virtual-buffers t)
+  ;;     (setq ivy-display-style 'fancy)
+  ;;     (setq enable-recursive-minibuffers t)
+  ;;     (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
+  ;;     ))
+
+  ;; (use-package avy
+  ;;   :ensure t
+  ;;   :bind ("M-s" . avy-goto-char))
+
+#+END_SRC
+
+* theme
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package zenburn-theme
+  ;;   :ensure t
+  ;;   :config (load-theme 'zenburn t)
+  ;;   )
+#+END_SRC
+
+* flycheck
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package flycheck
+  ;;   :ensure t
+  ;;   :commands flycheck-mode
+  ;;   :init
+  ;;   (add-hook 'c++-mode-hook 'flycheck-mode)
+  ;;   (add-hook 'c-mode-hook 'flycheck-mode))
+
+#+END_SRC
+
+* yasnippet
+#+BEGIN_SRC emacs-lisp
+  ;; (use-package yasnippet
+  ;;   :ensure t
+  ;;   :init
+  ;;   (yas-global-mode 1))
+
+  ;; (use-package yasnippet-snippets
+  ;;   :ensure t)
+#+END_SRC
+
+* undo tree
+#+begin_src emacs-lisp  
+  ;; (use-package undo-tree
+  ;;   :ensure t
+  ;;   :init
+  ;;   (global-undo-tree-mode))
+#+end_src
+
+* misc packages
+#+begin_src emacs-lisp 
+  ;;(global-hl-line-mode t)
+
+  ;; (use-package beacon
+  ;;   :ensure t
+  ;;   :config
+  ;;   (beacon-mode t))
+
+  ;; (use-package expand-region
+  ;;   :ensure t
+  ;;   :bind  ("C-=" . er/expand-region))
+#+end_src
+
+* magit
+#+begin_src emacs-lisp 
+  ;; (use-package magit
+  ;;   :ensure t
+  ;;   :init
+  ;;   (message "Loading Magit!")
+  ;;   :config
+  ;;   (message "Loaded Magit!")
+  ;;   :bind (("C-x g" . magit-status)
+  ;;          ("C-x C-g" . magit-status)))
+#+end_src
+
+* cmake
+#+begin_src emacs-lisp 
+  ;;(use-package cmake-mode
+  ;;  :ensure t
+  ;;  :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
+
+  ;;(use-package cmake-font-lock
+  ;;  :ensure t
+    ;;    :after (cmake-mode)
+  ;;  :hook (cmake-mode . cmake-font-lock-activate))
+
+  ;; (use-package cmake-ide
+  ;;   :after projectile
+  ;;   :hook (c++-mode . my/cmake-ide-find-project)
+  ;;   :preface
+  ;;   (defun my/cmake-ide-find-project ()
+  ;;     "Finds the directory of the project for cmake-ide."
+  ;;     (with-eval-after-load 'projectile
+  ;;       (setq cmake-ide-project-dir (projectile-project-root))
+  ;;       (setq cmake-ide-build-dir (concat cmake-ide-project-dir "build")))
+  ;;     (setq cmake-ide-compile-command 
+  ;;           (concat "cd " cmake-ide-build-dir " && cmake .. && make"))
+  ;;     (cmake-ide-load-db))
+
+  ;;   (defun my/switch-to-compilation-window ()
+  ;;     "Switches to the *compilation* buffer after compilation."
+  ;;     (other-window 1))
+  ;;   :bind ([remap comment-region] . cmake-ide-compile)
+  ;;   :init (cmake-ide-setup)
+  ;;   :config (advice-add 'cmake-ide-compile :after #'my/switch-to-compilation-window))
+
+  ;;(global-set-key "\C-ck" #'compile)
+
+#+end_src
+
+* lsp
+#+begin_src emacs-lisp 
+  ;; ;; ;; set prefix for lsp-command-keymap (few alternatives - "s-l", "C-l")
+  ;; (setq lsp-keymap-prefix "C-c l")
+  ;; ;; (setq company-clang-executable "/usr/local/Cellar/llvm/12.0.0/bin/clang-12")
+  ;; ;; (setq lsp-clients-clangd-executable "/usr/local/Cellar/llvm/12.0.0/bin/clangd")
+
+  ;; (use-package lsp-mode
+  ;;   :ensure t
+  ;;   :commands lsp
+  ;;   :hook ((c-mode c++-mode cpp-mode-hook) . lsp)
+  ;;   )
+
+  ;; (use-package lsp-ui
+  ;;   :ensure t
+  ;;   :hook (lsp-mode . lsp-ui-mode))
+
+  ;; ;; (use-package company-lsp
+  ;; ;;   ;; company-mode completion
+  ;; ;;   :commands company-lsp
+  ;; ;;   :config (push 'company-lsp company-backends))
+
+  ;; (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+
+  ;; (use-package lsp-treemacs
+  ;;   ;;:ensure t
+  ;;   :after treemacs
+  ;;   ;; project wide overview
+  ;;   :commands lsp-treemacs-errors-list)
+
+  ;; ;; (use-package dap-mode
+  ;; ;;   :commands (dap-debug dap-debug-edit-template))
+
+#+end_src
+
+* company
+#+begin_src emacs-lisp 
+  ;; (use-package company
+  ;;   :ensure t
+  ;;   :config
+  ;;   (setq company-idle-delay 0)
+  ;;   (setq company-minimum-prefix-length 3)
+
+  ;;   (global-company-mode t))
+
+
+  ;; (use-package irony
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'c++-mode-hook 'irony-mode)
+  ;;   (add-hook 'c-mode-hook 'irony-mode)
+  ;;   ;;    (add-hook 'objc-mode-hook 'irony-mode)
+  ;;   (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+  ;; (use-package irony-eldoc
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-hook 'irony-mode-hook #'irony-eldoc))
+
+  ;; (use-package company-irony
+  ;;   :ensure t
+  ;;   :config
+  ;;   (add-to-list 'company-backend 'company-irony))
+
+  ;; (use-package flycheck-irony
+  ;;   :ensure t
+  ;;   :config
+  ;;   (eval-after-load 'flycheck
+  ;;     '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
+  ;;   )
+
+#+end_src
+
+* projectile
+This will manage my workspaces
+#+begin_src emacs-lisp 
+  ;; (use-package projectile
+  ;;   :ensure t
+  ;;   :bind ("C-c p" . projectile-command-map)
+  ;;   :config
+  ;;   (projectile-global-mode)
+  ;;   (setq projectile-completion-system 'ivy))
+#+end_src
+
+* terraform
+#+begin_src emacs-lisp 
+  ;; (use-package hcl-mode
+  ;;   :mode "\\.nomad\\'")
+
+  ;; (use-package terraform-mode
+  ;;   :hook
+  ;;   (terraform-mode . company-mode)
+  ;;   (terraform-mode . (lambda ()
+  ;;                       (when (and (stringp buffer-file-name)
+  ;;                                  (string-match "\\.tf\\(vars\\)?\\'" buffer-file-name))
+  ;;                         (aggressive-indent-mode 0))))
+
+  ;;   (before-save . terraform-format-buffer))
+#+end_src
+>
+* dumb jump
+#+begin_src emacs-lisp 
+  ;; (use-package dumb-jump
+  ;;   :bind (("M-g o" . dumb-jump-go-other-window)
+  ;;          ("M-g j" . dumb-jump-go)
+  ;;          ("M-g x" . dumb-jump-go-prefer-external)
+  ;;          ("M-g z" . dumb-jump-go-prefer-external-other-window))
+  ;;   :config 
+  ;;   (setq dumb-jump-selector 'ivy) ;; (setq dumb-jump-selector 'helm)
+  ;;   :init
+  ;;   (dumb-jump-mode)
+  ;;   :ensure
+  ;;   )
+#+end_src
+* lisp
+#+begin_src shell 
+  # (setq inferior-lisp-program "/usr/local/bin/sbcl")
+
+  # (use-package slime
+  #  :init
+  #  (load (expand-file-name "~/.quicklisp/slime-helper.el"))
+  #  :config
+  #  (setq slime-lisp-implementations
+  #   '((sbcl  ("/usr/local/bin/sbcl" "--dynamic-space-size" "2GB") :coding-system utf-8-unix))
+  #     slime-net-coding-system 'utf-8-unix
+  #   slime-export-save-file t
+  #   slime-contribs '(slime-fancy slime-repl slime-scratch slime-trace-dialog)
+  #     lisp-simple-loop-indentation  1
+  #     lisp-loop-keyword-indentation 6
+  #     lisp-loop-forms-indentation   6)
+  #   (global-set-key "\C-z" 'slime-selector)
+  #  (autoload 'paredit-mode "paredit" "Minor mode for structurally editing Lisp code." t)
+  #   (add-hook 'emacs-lisp-mode-hook       (lambda () (paredit-mode +1)))
+  #  (add-hook 'lisp-mode-hook             (lambda () (paredit-mode +1)))
+  #   (add-hook 'lisp-interaction-mode-hook (lambda () (paredit-mode +1)))
+  #  (add-hook 'scheme-mode-hook           (lambda () (paredit-mode +1)))
+  #   (add-hook 'slime-repl-mode-hook       (lambda () (paredit-mode +1)))
+  #  (add-hook 'slime-load-hook            (lambda () (require 'slime-fancy)))
+  #                                                                           (add-hook 'enable-paredit-mode        (lambda () (paredit-mode +1)))
+  #   (add-hook 'slime-repl-mode-hook       'override-slime-repl-bindings-with-paredit)
+  #   (show-paren-mode 1))
+
+#+end_src
+
+* load files
+#+begin_src emacs-lisp 
+  (defun load-if-exist (f)
+    "load the file if exist"
+    (if (file-readable-p f)
+        (load-file f))) 
+
+  (load-if-exist "~/Documents/shared/mu4econfig.el")
+#+end_src
 
 
