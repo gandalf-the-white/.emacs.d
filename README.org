@@ -488,6 +488,7 @@ Hide various elements of the Emacs GUI:
   #+begin_src emacs-lisp
     (dolist (mode
              '(tool-bar-mode
+               menu-bar-mode
                blink-cursor-mode))
       (funcall mode 0))
 
@@ -731,7 +732,7 @@ Configuration for the brilliant Org mode!
                "* %^{Brief Description} %^g\n%?\tAdded: %U"))))
   #+end_src
 
-** [[[https://github.com/sabof/org-bullets][Org bullets]]]
+** [[https://github.com/sabof/org-bullets][Org bullets]]
 Make Org headings look a bit fancier
 #+begin_src emacs-lisp
   (use-package org-bullets
